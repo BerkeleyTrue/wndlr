@@ -1,0 +1,15 @@
+{
+  "presets": [ "es2015" ],
+  "plugins": [
+    "lodash",
+    [
+        "transform-runtime",
+        {
+            "helpers": true,
+            "polyfill": false,
+            "regenerator": false
+        }
+    ],
+    "dev-expression"
+  ]
+}
