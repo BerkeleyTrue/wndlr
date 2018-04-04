@@ -33,7 +33,13 @@
   },
   "dependencies": {
     "babel-runtime": "^6.11.6",
-    "invariant": "^2.2.1"
+    "express": "^4.16.3",
+    "invariant": "^2.2.1",
+    "react": "^16.3.1",
+    "react-redux": "^5.0.7",
+    "redux": "^3.7.2",
+    "redux-observable": "^0.18.0",
+    "redux-vertical": "^1.0.0"
   },
   "devDependencies": {
     "ava": "^0.25.0",
@@ -58,7 +64,12 @@
     "nyc": "^11.1.0",
     "prettier": "^1.5.2",
     "sinon": "^5.0.0",
-    "validate-commit-msg": "^2.14.0"
+    "validate-commit-msg": "^2.14.0",
+    "webpack": "^4.5.0",
+    "webpack-dev-middleware": "^3.1.0",
+    "webpack-dev-server": "^3.1.1",
+    "webpack-hot-middleware": "^2.21.2",
+    "webpack-stats-plugin": "^0.2.1"
   },
   "repository": {
     "type": "git",
