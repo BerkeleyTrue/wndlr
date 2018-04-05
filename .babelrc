@@ -1,14 +1,7 @@
 {
-  "env": {
-    "node": {
-      "presets": [
-        [
-          "env",
-          { "targets": { "node": "current" } }
-        ]
-      ],
-    }
-  },
+  "presets": [
+    "react"
+  ],
   "plugins": [
     "lodash",
     [
@@ -20,5 +13,23 @@
         }
     ],
     "dev-expression"
-  ]
+  ],
+  "env": {
+    "node": {
+      "presets": [
+        [
+          "env",
+          { "targets": { "node": "current" } }
+        ]
+      ]
+    },
+    "client": {
+      "presets": [
+        [
+          "env",
+          { "targets": { "browsers": "last 2 versions" } }
+        ]
+      ]
+    }
+  }
 }
