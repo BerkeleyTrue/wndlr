@@ -1,5 +1,14 @@
 {
-  "presets": [ "es2015" ],
+  "env": {
+    "node": {
+      "presets": [
+        [
+          "env",
+          { "targets": { "node": "current" } }
+        ]
+      ],
+    }
+  },
   "plugins": [
     "lodash",
     [
