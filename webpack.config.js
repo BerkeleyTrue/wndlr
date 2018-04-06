@@ -13,14 +13,31 @@ module.exports = () => [ {
     publicPath: '/js',
   },
   module: {
-    rules: [ {
-      test: /\.jsx?$/,
-      include: [
-        path.resolve(__dirname, 'src/client'),
-        path.resolve(__dirname, 'src/common'),
-      ],
-      loader: 'babel-loader',
-    } ],
+    rules: [
+      {
+        test: /\.jsx?$/,
+        include: [
+          path.resolve(__dirname, 'src/client'),
+          path.resolve(__dirname, 'src/common'),
+        ],
+        loader: 'babel-loader',
+      },
+      {
+        test: /\.sss$/,
+        include: [
+          path.resolve(__dirname, 'src/client'),
+          path.resolve(__dirname, 'src/common'),
+        ],
+        use: [
+          'style-loader',
+          {
+            loader: 'css-loader',
+            options: { importLoaders: 1 },
+          },
+          'postcss-loader',
+        ],
+      },
+    ],
   },
   // entry: 'src/server/index.js',
   // target: 'node',
