@@ -9,7 +9,7 @@ module.exports = () => [ {
   output: {
     filename: isDev ? '[name].js' : '[name]-[hash].js',
     chunkFilename: isDev ? '[name].js' : '[name]-[chunkhash].js',
-    path: path.join(__dirname, '/public/js'),
+    path: path.join(__dirname, '/dist/js'),
     publicPath: '/js',
   },
   module: {
