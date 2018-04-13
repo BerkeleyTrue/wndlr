@@ -20,7 +20,7 @@
     "cover:watch": "browser-sync start --ss coverage --port 3001 -f coverage/index.html & nodemon --watch src/**/* --watch test/**/* --delay 2 --exec 'npm run test && npm run cover'",
     "cover:alls": "nyc report --reporter=text-lcov | coveralls",
     "cover:open": "open coverage/index.html",
-    "format": "prettier '*.js' 'src/**/*.!(sss)' --trailing-comma all --single-quote --write",
+    "format": "prettier '*.js' 'src/**/*.!(global.sss|sss)' --trailing-comma all --single-quote --write",
     "postformat": "npm run lint:fix",
     "commit": "git-cz",
     "commitmsg": "validate-commit-msg",
