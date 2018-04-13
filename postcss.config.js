@@ -3,5 +3,6 @@ module.exports = {
   plugins: {
     'postcss-flexbox': {},
     autoprefixer: {},
+    'postcss-normalize': {},
   },
 };

@@ -38,7 +38,26 @@ module.exports = env => {
           }),
         },
         {
+          test: /\.global\.sss$/,
+          include: [
+            path.resolve(__dirname, 'src/client'),
+            path.resolve(__dirname, 'src/common'),
+          ],
+          use: removeEmpty([
+            ifDev('style-loader'),
+            {
+              loader: 'css-loader',
+              options: removeEmpty({
+                minimize: ifProd(true),
+                importLoaders: 1,
+              }),
+            },
+            'postcss-loader',
+          ]),
+        },
+        {
           test: /\.sss$/,
+          exclude: /\.global\.sss$/,
           include: [
             path.resolve(__dirname, 'src/client'),
             path.resolve(__dirname, 'src/common'),

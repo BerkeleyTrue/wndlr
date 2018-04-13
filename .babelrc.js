@@ -20,6 +20,7 @@ module.exports = {
     ]),
     ifClient([
       'env',
+      // env does not currently support browserslistrc
       { targets: { browsers: 'last 2 versions' } },
     ]),
   ]),

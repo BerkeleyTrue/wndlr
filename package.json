@@ -81,6 +81,7 @@
     "nyc": "^11.1.0",
     "postcss-flexbox": "^1.0.3",
     "postcss-loader": "^2.1.3",
+    "postcss-normalize": "^4.0.0",
     "prettier": "^1.5.2",
     "react-hot-loader": "^4.0.1",
     "sinon": "^5.0.0",
