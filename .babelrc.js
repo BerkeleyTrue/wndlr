@@ -38,10 +38,8 @@ module.exports = {
     ifClient([
       'react-css-modules',
       {
-        options: {
-          filetypes: {
-            '.sss': { syntax: 'postcss-sugarss' },
-          },
+        filetypes: {
+          '.sss': { syntax: 'sugarss' },
         },
       },
     ]),
