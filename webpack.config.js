@@ -1,10 +1,19 @@
 const path = require('path');
+const webpack = require('webpack');
 
 const isDev = process.env.NODE_ENV !== 'production';
 
+const clientEntry = { bundle: './src/client/index.jsx' };
 module.exports = () => [ {
   mode: isDev ? 'development' : 'production',
-  entry: { bundle: './src/client/index.jsx' },
+  entry: isDev ?
+    {
+      bundle: [
+        'webpack-hot-middleware/client',
+        clientEntry.bundle,
+      ],
+    } :
+    clientEntry,
   devtool: isDev ? 'inline-source-map' : 'source-map',
   output: {
     filename: isDev ? '[name].js' : '[name]-[hash].js',
@@ -39,6 +48,10 @@ module.exports = () => [ {
       },
     ],
   },
+  plugins: [
+    new webpack.HotModuleReplacementPlugin(),
+    new webpack.NoEmitOnErrorsPlugin(),
+  ],
   // entry: 'src/server/index.js',
   // target: 'node',
   // // don't bundle anything not in nodemodules or relative path

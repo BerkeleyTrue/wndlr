@@ -1,5 +1,6 @@
 import React from 'react';
 import { render } from 'react-dom';
+import App from './App.jsx';
 import './index.sss';
 
-render(<h1>Hello Wndlr</h1>, document.getElementById('app'));
+render(<App />, document.getElementById('app'));

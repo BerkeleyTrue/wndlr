@@ -4,12 +4,14 @@ import morgan from 'morgan';
 import createDebugger from 'debug';
 import webpack from 'webpack';
 import webpackDevMiddleware from 'webpack-dev-middleware';
+import webpackHotMiddleware from 'webpack-hot-middleware';
 import config from '../../webpack.config.js';
 
+const [ clientConfig ] = config();
 const log = createDebugger('wndlr:server');
 log.enabled = true;
 const isDev = process.env.NODE_ENV !== 'production';
-const compiler = webpack(config());
+const compiler = webpack(clientConfig);
 
 const app = express();
 app.set('port', process.env.PORT);
@@ -26,7 +28,13 @@ const renderHtml = () => `
 `;
 
 app.use(morgan('dev'));
-app.use(webpackDevMiddleware(compiler, { heartbeat: 10 * 1000 }));
+app.use(webpackHotMiddleware(compiler));
+app.use(
+  webpackDevMiddleware(compiler, {
+    publicPath: clientConfig.output.publicPath,
+    heartbeat: 10 * 1000,
+  }),
+);
 app.use(express.static('dist'));
 app.get('/', (req, res) => res.send(renderHtml({ message: 'hello wndlr' })));
 
