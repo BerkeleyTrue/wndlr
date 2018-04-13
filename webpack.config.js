@@ -32,7 +32,10 @@ module.exports = env => {
             path.resolve(__dirname, 'src/client'),
             path.resolve(__dirname, 'src/common'),
           ],
-          loader: 'babel-loader?cacheDirectory',
+          loader: 'babel-loader',
+          options: removeEmpty({
+            cacheDirectory: ifDev(true),
+          }),
         },
         {
           test: /\.sss$/,
