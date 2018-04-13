@@ -7,7 +7,7 @@ import webpackDevMiddleware from 'webpack-dev-middleware';
 import webpackHotMiddleware from 'webpack-hot-middleware';
 import config from '../../webpack.config.js';
 
-const [ clientConfig ] = config();
+const [ clientConfig ] = config(process.env.NODE_ENV || 'development');
 const log = createDebugger('wndlr:server');
 log.enabled = true;
 const isDev = process.env.NODE_ENV !== 'production';

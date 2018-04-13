@@ -35,13 +35,5 @@ module.exports = {
     ],
     ifProd('dev-expression'),
     ifClient('react-hot-loader/babel'),
-    ifClient([
-      'react-css-modules',
-      {
-        filetypes: {
-          '.sss': { syntax: 'sugarss' },
-        },
-      },
-    ]),
   ]),
 };
