@@ -1,38 +1,5 @@
 {
   "presets": [
-    "react"
-  ],
-  "plugins": [
-    "lodash",
-    [
-        "transform-runtime",
-        {
-            "helpers": true,
-            "polyfill": false,
-            "regenerator": false
-        }
-    ],
-    "dev-expression"
-  ],
-  "env": {
-    "node": {
-      "presets": [
-        [
-          "env",
-          { "targets": { "node": "current" } }
-        ]
-      ]
-    },
-    "client": {
-      "plugins": [
-        "react-hot-module/babel"
-      ],
-      "presets": [
-        [
-          "env",
-          { "targets": { "browsers": "last 2 versions" } }
-        ]
-      ]
-    }
-  }
+    "./.babelrc.js"
+  ]
 }
