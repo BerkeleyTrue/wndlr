@@ -12,7 +12,7 @@
     "build:client": "BABEL_TARGET=client webpack",
     "build:server": "BABEL_TARGET=node babel src/server --out-dir dist/server",
     "build:watch": "npm run build:watch:server",
-    "build:watch:server": "nodemon --watch src/server --exec 'npm run build:server'",
+    "build:watch:server": "nodemon --w src/server -w webpack.config.js -w .babelrc.js --exec 'npm run build:server'",
     "pretest": "npm run lint",
     "test": "nyc ava",
     "test:watch": "ava --watch",
