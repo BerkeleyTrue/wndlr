@@ -7,7 +7,7 @@ const propTypes = {};
 export function App() {
   return (
     <div>
-      <h1>Hello foo</h1>
+      <h1>Hello WNDLR</h1>
     </div>
   );
 }
