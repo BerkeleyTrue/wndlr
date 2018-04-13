@@ -16,7 +16,8 @@ module.exports = env => {
           clientEntry.bundle,
         ],
       },
-      clientEntry),
+      clientEntry,
+    ),
     devtool: ifDev('inline-source-map', 'source-map'),
     output: {
       filename: ifDev('[name].js', '[name]-[hash].js'),
@@ -88,13 +89,15 @@ module.exports = env => {
       // Use browser version of visionmedia-debug
       new webpack.NormalModuleReplacementPlugin(
         /debug\/node/,
-        'debug/src/browser'
+        'debug/src/browser',
       ),
-      ifProd(new UglifyPlugin({
-        test: /\.js($|\?)/i,
-        cache: true,
-        sourceMap: true,
-      })),
+      ifProd(
+        new UglifyPlugin({
+          test: /\.js($|\?)/i,
+          cache: true,
+          sourceMap: true,
+        }),
+      ),
       ifDev(new webpack.HotModuleReplacementPlugin()),
       ifDev(new webpack.NoEmitOnErrorsPlugin()),
     ]),
