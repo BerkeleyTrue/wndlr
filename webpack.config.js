@@ -5,7 +5,7 @@ const { getIfUtils, removeEmpty } = require('webpack-config-utils');
 const clientEntry = { bundle: './src/client/index.jsx' };
 
 module.exports = env => {
-  const { ifNotProduction: ifDev } = getIfUtils(env);
+  const { ifProduction: ifProd, ifNotProduction: ifDev } = getIfUtils(env);
   return [ {
     mode: ifDev('development', 'production'),
     entry: ifDev(
@@ -39,18 +39,19 @@ module.exports = env => {
             path.resolve(__dirname, 'src/client'),
             path.resolve(__dirname, 'src/common'),
           ],
-          use: [
-            'style-loader',
+          use: removeEmpty([
+            ifDev('style-loader'),
             {
               loader: 'css-loader',
               options: removeEmpty({
+                minimize: ifProd(true),
                 modules: true,
                 importLoaders: 1,
                 localIdentName: ifDev('[name]-[local]---[hash:base64:5]'),
               }),
             },
             'postcss-loader',
-          ],
+          ]),
         },
       ],
     },
