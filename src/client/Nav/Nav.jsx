@@ -6,7 +6,15 @@ const propTypes = {};
 const cx = classnames.bind(styles);
 
 export default function NavBar() {
-  return <nav className={ cx('nav-bar') }>bar</nav>;
+  return <nav className={ cx('nav-bar') }>
+    <div className={ cx('logo') }>
+      WNDLR
+    </div>
+
+     <button className={ cx('nav-auth-button') }>
+       Sign In
+     </button>
+    </nav>;
 }
 NavBar.displayName = 'NavBar';
 NavBar.propTypes = propTypes;
