@@ -1,15 +1,19 @@
 import React from 'react';
-// import PropTypes from 'prop-types';
 import { hot } from 'react-hot-loader';
+import classnames from 'classnames/bind';
+import styles from './app.sss';
 import Nav from './Nav';
 
 const propTypes = {};
+const cx = classnames.bind(styles);
 
 export function App() {
   return (
-    <div>
+    <div className={ cx('main') }>
       <Nav />
-      <h1>Hello WNDLR</h1>
+      <div className={ cx('main-content') }>
+        <h1>Hello WNDLR</h1>
+      </div>
     </div>
   );
 }
