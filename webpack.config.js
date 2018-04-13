@@ -2,26 +2,24 @@ const path = require('path');
 const webpack = require('webpack');
 const { getIfUtils, removeEmpty } = require('webpack-config-utils');
 
-const isDev = process.env.NODE_ENV !== 'production';
-
 const clientEntry = { bundle: './src/client/index.jsx' };
 
 module.exports = env => {
   const { ifNotProduction: ifDev } = getIfUtils(env);
   return [ {
-    mode: isDev ? 'development' : 'production',
-    entry: isDev ?
+    mode: ifDev('development', 'production'),
+    entry: ifDev(
       {
         bundle: [
           'webpack-hot-middleware/client',
           clientEntry.bundle,
         ],
-      } :
-      clientEntry,
-    devtool: isDev ? 'inline-source-map' : 'source-map',
+      },
+      clientEntry),
+    devtool: ifDev('inline-source-map', 'source-map'),
     output: {
-      filename: isDev ? '[name].js' : '[name]-[hash].js',
-      chunkFilename: isDev ? '[name].js' : '[name]-[chunkhash].js',
+      filename: ifDev('[name].js', '[name]-[hash].js'),
+      chunkFilename: ifDev('[name].js', '[name]-[chunkhash].js'),
       path: path.join(__dirname, '/dist/js'),
       publicPath: '/js',
     },
