@@ -1,7 +1,11 @@
 import React from 'react';
 import { hot } from 'react-hot-loader';
 import classnames from 'classnames/bind';
+
+import './typography.global.sss';
+import './index.global.sss';
 import styles from './app.sss';
+
 import Nav from './Nav';
 import Auth from './Auth';
 
