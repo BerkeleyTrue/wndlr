@@ -3,6 +3,7 @@ import { hot } from 'react-hot-loader';
 import classnames from 'classnames/bind';
 import styles from './app.sss';
 import Nav from './Nav';
+import Auth from './Auth';
 
 const propTypes = {};
 const cx = classnames.bind(styles);
@@ -13,6 +14,7 @@ export function App() {
       <Nav />
       <div className={ cx('main-content') }>
         <h1>Hello WNDLR</h1>
+        <Auth />
       </div>
     </div>
   );
