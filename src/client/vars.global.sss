@@ -1,0 +1,100 @@
+$gray: #CACACA
+$gray-dark: #868686
+$primary: #000000
+$callout-gray-border: #F4F4F4
+$text-header: #000000
+$text-description: #515151
+$menu-selected: #000000
+$menu-unselected: #888888
+$menu-title: #000000
+$menu-item: #747474
+$menu-shadow: rgba(138 138 138 50)
+$ftr-background: #323232
+$ftr-primary: #FFFFFF
+$ftr-secondary: #C0C0C0
+$ftr-action-btn: #EA8694
+$ftr-hover: #63C7ED
+$banner-mobile-overlay: rgba(2 174 239 50)
+$color-sale: #F81717
+
+$brand-info: #63C7ED
+$brand-success: #7ED321
+$brand-error: #FF0000
+
+$bg-color: #FFFFFF
+
+// Typography
+
+$font-size-base:         16px
+$font-size-small:        ceil($font-size-base * 0.85) // ~12px
+$font-size-large:        ceil($font-size-base * 1.25) // ~18px
+
+$font-size-h1:           floor($font-size-base * 2.6) // ~36px
+$font-size-h2:           floor($font-size-base * 2.15) // ~30px
+$font-size-h3:           ceil($font-size-base * 1.7) // ~24px
+$font-size-h4:           ceil($font-size-base * 1.25) // ~18px
+$font-size-h5:           $font-size-base
+$font-size-h6:           ceil($font-size-base * 0.85) // ~12px
+
+//** Unit-less `line-height` for use in components like buttons.
+$line-height-base:       1.428571429 // 20/14
+//** Computed "line-height" (`font-size` * `line-height`) for use with `margin`, `padding`, etc.
+$line-height-computed:   floor($font-size-base * $line-height-base) // ~20px
+
+// Components
+
+$padding-base-vertical:     6px
+$padding-base-horizontal:  12px
+
+$padding-xl-vertical:   15px
+$padding-xl-horizontal: 30px
+
+$padding-lg-vertical:   10px
+$padding-lg-horizontal: 16px
+
+$padding-sm-vertical:   5px
+$padding-sm-horizontal: 10px
+
+$padding-xs-vertical:      1px
+$padding-xs-horizontal:    5px
+
+$line-height-large:        1.33
+$line-height-small:        1.5
+$line-height-copy:         25px
+
+$border-radius-base:       4px
+$border-radius-large:      6px
+$border-radius-small:      3px
+
+// Media queries
+$scale-xs: 425px,
+$scale-sm: 768px,
+$scale-md: 1024px,
+$scale-lg: 1440px,
+
+// prevent queries from overlapping
+$scale-xsmax: $scale-xs - 1
+$scale-smmax: $scale-sm - 1
+$scale-mdmax: $scale-md - 1
+$scale-lgmax: $scale-lg - 1
+
+// Grid
+$grid-columns:             12
+$grid-gutter-width:        30px
+// Navbar collapse
+// Point at which the navbar becomes uncollapsed.
+$grid-float-breakpoint:    $scale-sm
+// Point at which the navbar begins collapsing.
+$grid-float-breakpoint-max: ($grid-float-breakpoint - 1)
+
+
+// z-index
+// do not modify
+$z-navbar:          1000
+$z-dropdown:        1000
+$z-popover:         1060
+$z-tooltip:         1070
+$z-navbar-fixed:    1030
+$z-modal:           1040
+
+ks-no-conflict: true
