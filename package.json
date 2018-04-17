@@ -43,6 +43,7 @@
     "debug": "^3.1.0",
     "dotenv": "^5.0.1",
     "express": "^4.16.3",
+    "history": "^4.7.2",
     "invariant": "^2.2.1",
     "isdev": "^1.0.1",
     "lodash": "^4.17.5",
@@ -53,6 +54,7 @@
     "redux": "^3.7.2",
     "redux-observable": "^0.18.0",
     "redux-vertical": "^1.0.0",
+    "rxjs": "^5.5.10",
     "sugarss": "^1.0.1"
   },
   "devDependencies": {
