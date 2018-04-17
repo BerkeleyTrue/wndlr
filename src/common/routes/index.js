@@ -1,6 +1,5 @@
-import { types } from '../Auth/redux';
+import { routesMap as authRoutes } from '../Auth/redux';
 
 export default {
-  [types.onRouteSignIn]: '/sign-in',
-  [types.onRouteSignUp]: '/sign-up',
+  ...authRoutes,
 };

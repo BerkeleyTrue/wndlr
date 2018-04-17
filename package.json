@@ -53,6 +53,7 @@
     "react-redux": "^5.0.7",
     "redux": "^3.7.2",
     "redux-first-router": "^1.9.19",
+    "redux-first-router-link": "^1.4.2",
     "redux-observable": "^0.18.0",
     "redux-vertical": "^1.0.0",
     "rxjs": "^5.5.10",
