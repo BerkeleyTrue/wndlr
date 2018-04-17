@@ -14,6 +14,10 @@ import createReducer from './create-reducer.js';
 const log = createDebugger('wndlr:common:create-app');
 
 export default function createApp({
+  // Note: root key is used to force react to render
+  // a new tree on subsequent render(appElement) calls.
+  // This prevents the Provider warning about the store object changing
+  rootKey,
   history,
   defaultState,
   enhancer: sideEnhancer,
@@ -35,7 +39,10 @@ export default function createApp({
   const store = createStore(reducer, defaultState, enhancer);
   const location = selectLocationState(store.getState());
   const appElement = (
-    <Provider store={ store }>
+    <Provider
+      key={ rootKey }
+      store={ store }
+      >
       <App />
     </Provider>
   );
@@ -45,7 +52,7 @@ export default function createApp({
       module.hot.accept('./create-reducer.js', () => {
         log('hot reloading reducers');
         store.replaceReducer(
-          require('./create-reducer.js').default(routesReducer)
+          require('./create-reducer.js').default(routesReducer),
         );
       });
     }
