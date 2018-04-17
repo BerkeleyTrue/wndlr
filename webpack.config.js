@@ -88,8 +88,8 @@ module.exports = env => {
       }),
       // Use browser version of visionmedia-debug
       new webpack.NormalModuleReplacementPlugin(
-        /debug\/node/,
-        'debug/src/browser',
+        /debug\/src\/index.js/,
+        'debug/src/browser.js',
       ),
       ifProd(
         new UglifyPlugin({
