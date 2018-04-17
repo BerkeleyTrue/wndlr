@@ -1,5 +1,6 @@
 import React from 'react';
 import { createStore, compose, applyMiddleware } from 'redux';
+import { Provider } from 'react-redux';
 import { selectLocationState, connectRoutes } from 'redux-first-router';
 import { of } from 'rxjs/observable/of';
 import { empty } from 'rxjs/observable/empty';
@@ -29,8 +30,13 @@ export default function createApp({
   const reducer = combineReducers(routesReducer);
   const store = createStore(reducer, defaultState, enhancer);
   const location = selectLocationState(store.getState());
+  const appElement = (
+    <Provider store={ store }>
+      <App />
+    </Provider>
+  );
   return of({
-    appElement: <App />,
+    appElement,
     store,
     epic: () => empty(),
     location,
