@@ -12,9 +12,7 @@ const {
   devToolsExtension,
   location,
   document,
-  __wndlr__: {
-    data: defaultState = {},
-  } = {},
+  __wndlr__: { data: defaultState = {} } = {},
 } = window;
 
 const history = createHistory();

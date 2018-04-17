@@ -14,15 +14,16 @@ const { ifClient, ifNotClient: ifNode, ifNotDevelopment: ifProd } = getIfUtils(
 module.exports = {
   presets: removeEmpty([
     'react',
-    ifNode([
+    [
       'env',
-      { targets: { node: 'current' } },
-    ]),
-    ifClient([
-      'env',
-      // env does not currently support browserslistrc
-      { targets: { browsers: 'last 2 versions' } },
-    ]),
+      {
+        targets: removeEmpty({
+          node: ifNode('current'),
+          // env does not currently support browserslistrc
+          browsers: ifClient('last 2 versions'),
+        }),
+      },
+    ],
   ]),
   plugins: removeEmpty([
     'lodash',
@@ -34,6 +35,7 @@ module.exports = {
         regenerator: false,
       },
     ],
+    'transform-object-rest-spread',
     ifProd('dev-expression'),
     ifClient('react-hot-loader/babel'),
   ]),
