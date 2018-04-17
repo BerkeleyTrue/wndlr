@@ -30,7 +30,7 @@ export function App() {
   );
 }
 
-export default _.flow(hot(module), connect(mapStateToProps))(App);
+export default _.flowRight(hot(module), connect(mapStateToProps))(App);
 
 App.displayName = 'App';
 App.propTypes = propTypes;
