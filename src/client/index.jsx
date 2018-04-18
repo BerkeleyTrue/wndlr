@@ -5,7 +5,7 @@ import { Subject } from 'rxjs/Subject';
 import { BehaviorSubject } from 'rxjs/BehaviorSubject';
 
 import render from './render.js';
-import { createApp } from '../common';
+import { ssrStateKey, createApp } from '../common';
 
 const hotReloadTimeout = 2000;
 const log = createDebugger('wndlr:client');
@@ -15,7 +15,7 @@ const {
   devToolsExtension,
   location,
   document,
-  __wndlr__: { data: ssrState = {} } = {},
+  __wndlr__: { [ssrStateKey]: SSRState = {} } = {},
 } = window;
 
 const history = createHistory();
@@ -27,7 +27,7 @@ const DOMContainer = document.getElementById('app');
 // the createApp function we can use the current state of the app
 // instead of initial ssr state
 const createApp$ = new Subject();
-const getState = new BehaviorSubject(() => ssrState);
+const getState = new BehaviorSubject(() => SSRState);
 
 createApp$
   .withLatestFrom(getState)

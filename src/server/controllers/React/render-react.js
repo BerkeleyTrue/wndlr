@@ -4,7 +4,7 @@ import { renderToString } from 'react-dom/server';
 import createHistory from 'history/createMemoryHistory';
 import { NOT_FOUND } from 'redux-first-router';
 
-import { createApp } from '../../create-app.js';
+import { createApp, ssrStateKey } from '../../create-app.js';
 
 const log = createDebugger('wndlr:server:controllers:React:render');
 const renderHtml = ({ markup, state }) => `
@@ -47,7 +47,7 @@ export default function renderReact(app) {
               log('rendering react page');
               const state = store.getState();
               // expose redux ssr state on window.__wndlr__.data
-              res.expose(state, 'data', { isJSON: true });
+              res.expose(state, ssrStateKey, { isJSON: true });
               res.send(
                 renderHtml({
                   markup: renderToString(appElement),
