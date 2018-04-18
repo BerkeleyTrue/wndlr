@@ -4,7 +4,7 @@ import { renderToString } from 'react-dom/server';
 import createHistory from 'history/createMemoryHistory';
 import { NOT_FOUND } from 'redux-first-router';
 
-import { createApp, ssrStateKey } from '../../create-app.js';
+import { createApp, ssrStateKey } from '../../common-to-server.js';
 
 const log = createDebugger('wndlr:server:controllers:React:render');
 const renderHtml = ({ markup, state }) => `

@@ -10,7 +10,7 @@
     "lint:fix": "eslint . --ext=js,jsx --fix",
     "build": "npm run build:client && npm run build:server:client && npm run build:server",
     "build:client": "BABEL_TARGET=client webpack --env production",
-    "build:server": "BABEL_TARGET=node babel src/server --ignore src/server/create-app.js --out-dir dist/server",
+    "build:server": "BABEL_TARGET=node babel src/server --ignore src/server/common-to-server.js --out-dir dist/server",
     "build:server:client": "BABEL_TARGET=node webpack --config webpack.server.js --env production",
     "build:watch": "npm run build:watch:server:client & npm run build:watch:server ",
     "build:watch:server": "nodemon -w postcss-plugins -w src/server -w webpack.config.js -w .babelrc.js -w postcss.config.js --exec 'npm run build:server'",

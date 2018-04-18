@@ -8,13 +8,13 @@ module.exports = env => {
   const { ifProduction: ifProd, ifNotProduction: ifDev } = getIfUtils(env);
   return {
     mode: ifDev('development', 'production'),
-    entry: './src/server/create-app.js',
+    entry: './src/server/common-to-server.js',
     target: 'node',
     // don't bundle anything not in nodemodules or relative path
     externals: nodeExternals(),
     output: {
       libraryTarget: 'commonjs',
-      filename: 'create-app.js',
+      filename: 'common-to-server.js',
       path: path.join(__dirname, '/dist/server'),
     },
     module: {
