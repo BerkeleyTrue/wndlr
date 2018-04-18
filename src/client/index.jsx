@@ -31,21 +31,22 @@ const getState = new BehaviorSubject(() => ssrState);
 
 createApp$
   .withLatestFrom(getState)
-  .switchMap(([
-    // this callback will be called when every a new createApp function
-    // is passed to the createApp$ stream
-    // This will then grab the latest getState function will allow us to
-    // access the latest state of the app
-    createApp,
-    getState,
-  ]) =>
-    // this creates the app and returns the app react element and redux store
-    createApp({
-      rootKey: createRootKey(),
-      history,
-      defaultState: getState(),
-      enhancer: isDev && devToolsExtension && devToolsExtension(),
-    }),
+  .switchMap(
+    ([
+      // this callback will be called when every a new createApp function
+      // is passed to the createApp$ stream
+      // This will then grab the latest getState function will allow us to
+      // access the latest state of the app
+      createApp,
+      getState,
+    ]) =>
+      // this creates the app and returns the app react element and redux store
+      createApp({
+        rootKey: createRootKey(),
+        history,
+        defaultState: getState(),
+        enhancer: isDev && devToolsExtension && devToolsExtension(),
+      }),
   )
   // as a side effect, we pass the newest getState function into the
   // behavior subject for later use during hot reload

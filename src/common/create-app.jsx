@@ -1,3 +1,4 @@
+import _ from 'lodash';
 import React from 'react';
 import createDebugger from 'debug';
 import { createStore, compose, applyMiddleware } from 'redux';
@@ -20,7 +21,7 @@ export default function createApp({
   rootKey,
   history,
   defaultState,
-  enhancer: sideEnhancer,
+  enhancer: sideEnhancer = _.identity,
 }) {
   const {
     reducer: routesReducer,

@@ -2,6 +2,7 @@ import 'dotenv/config';
 import _ from 'lodash';
 import express from 'express';
 import morgan from 'morgan';
+import expressState from 'express-state';
 import createDebugger from 'debug';
 import isDev from 'isdev';
 
@@ -12,13 +13,22 @@ const log = createDebugger('wndlr:server');
 log.enabled = true;
 
 const app = express();
+
+// setttings
 app.set('port', process.env.PORT);
+app.set('state namespace', '__wndlr__');
 
 app.use(morgan('dev'));
 
+expressState.extend(app);
+
+// server webpack client bundle
 devServer(app);
-app.use(express.static('dist'));
+// serve react app
 renderReact(app);
+
+// server static files
+app.use(express.static('dist'));
 
 app.start = _.once(() => {
   const server = app.listen(app.get('port'), () => {

@@ -1,36 +1,28 @@
 const path = require('path');
 const webpack = require('webpack');
-const UglifyPlugin = require('uglifyjs-webpack-plugin');
+const nodeExternals = require('webpack-node-externals');
+const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const { getIfUtils, removeEmpty } = require('webpack-config-utils');
-
-const clientEntry = { bundle: './src/client/index.jsx' };
 
 module.exports = env => {
   const { ifProduction: ifProd, ifNotProduction: ifDev } = getIfUtils(env);
   return {
     mode: ifDev('development', 'production'),
-    entry: ifDev(
-      {
-        bundle: [
-          'webpack-hot-middleware/client',
-          clientEntry.bundle,
-        ],
-      },
-      clientEntry,
-    ),
-    devtool: ifDev('inline-source-map', 'source-map'),
+    entry: './src/server/create-app.js',
+    target: 'node',
+    // don't bundle anything not in nodemodules or relative path
+    externals: nodeExternals(),
     output: {
-      filename: ifDev('[name].js', '[name]-[hash].js'),
-      chunkFilename: ifDev('[name].js', '[name]-[chunkhash].js'),
-      path: path.join(__dirname, '/dist/js'),
-      publicPath: '/js',
+      libraryTarget: 'commonjs',
+      filename: 'create-app.js',
+      path: path.join(__dirname, '/dist/server'),
     },
     module: {
       rules: [
         {
           test: /\.jsx?$/,
           include: [
-            path.resolve(__dirname, 'src/client'),
+            path.resolve(__dirname, 'src/server'),
             path.resolve(__dirname, 'src/common'),
           ],
           loader: 'babel-loader',
@@ -45,7 +37,6 @@ module.exports = env => {
             path.resolve(__dirname, 'src/common'),
           ],
           use: removeEmpty([
-            ifDev('style-loader'),
             {
               loader: 'css-loader',
               options: removeEmpty({
@@ -60,11 +51,11 @@ module.exports = env => {
           test: /\.sss$/,
           exclude: /\.global\.sss$/,
           include: [
-            path.resolve(__dirname, 'src/client'),
+            path.resolve(__dirname, 'src/server'),
             path.resolve(__dirname, 'src/common'),
           ],
           use: removeEmpty([
-            ifDev('style-loader'),
+            MiniCssExtractPlugin.loader,
             {
               loader: 'css-loader',
               options: removeEmpty({
@@ -80,25 +71,7 @@ module.exports = env => {
       ],
     },
     plugins: removeEmpty([
-      new webpack.DefinePlugin({
-        'process.env': {
-          NODE_ENV: JSON.stringify(ifDev('development', 'production')),
-          __DEVTOOLS__: JSON.stringify(ifDev()),
-        },
-      }),
-      // Use browser version of visionmedia-debug
-      new webpack.NormalModuleReplacementPlugin(
-        /debug\/src\/index.js/,
-        'debug/src/browser.js',
-      ),
-      ifProd(
-        new UglifyPlugin({
-          test: /\.js($|\?)/i,
-          cache: true,
-          sourceMap: true,
-        }),
-      ),
-      ifDev(new webpack.HotModuleReplacementPlugin()),
+      new MiniCssExtractPlugin(),
       ifDev(new webpack.NoEmitOnErrorsPlugin()),
     ]),
   };

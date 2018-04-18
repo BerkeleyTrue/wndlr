@@ -1,1 +1,1 @@
-export { default as renderReact } from './render-react.js';
+export { default as renderReact } from './React/render-react.js';
