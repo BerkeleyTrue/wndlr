@@ -56,6 +56,7 @@
     "redux-observable": "^0.18.0",
     "redux-vertical": "^1.0.0",
     "rxjs": "^5.5.10",
+    "source-map-support": "^0.5.4",
     "sugarss": "^1.0.1"
   },
   "devDependencies": {
@@ -87,6 +88,7 @@
     "gulp-nodemon": "^2.2.1",
     "gulp-notify": "^3.2.0",
     "gulp-plumber": "^1.2.0",
+    "gulp-sourcemaps": "^2.6.4",
     "husky": "^0.14.3",
     "mini-css-extract-plugin": "^0.4.0",
     "nyc": "^11.1.0",

@@ -6,6 +6,7 @@ const plumber = require('gulp-plumber');
 const notify = require('gulp-notify');
 const nodemon = require('gulp-nodemon');
 const babel = require('gulp-babel');
+const sourcemaps = require('gulp-sourcemaps');
 const webpack = require('webpack');
 const webpackStream = require('webpack-stream');
 const createWebpackServerConfig = require('./webpack.server.js');
@@ -35,9 +36,6 @@ const paths = {
       'src/server/**/*.js',
       // we ignore this becuase it is handled by webpack
       '!src/server/common-to-server.js',
-      '.babelrc.js',
-      'postcss.config.js',
-      'webpack.config.js',
     ],
     script: './dist/server/index.js',
     watch: [ 'dist/server/**/*' ],
@@ -59,6 +57,7 @@ gulp.task('build:server', () =>
   gulp
     .src(paths.server.buildFiles)
     .pipe(plumber({ errorHandler }))
+    .pipe(sourcemaps.init())
     .pipe(
       babel({
         presets: [ [
@@ -67,6 +66,7 @@ gulp.task('build:server', () =>
         ] ],
       }),
     )
+    .pipe(sourcemaps.write())
     .pipe(gulp.dest(paths.dist + '/server')),
 );
 

@@ -1,4 +1,5 @@
 import 'dotenv/config';
+import 'source-map-support/register';
 import _ from 'lodash';
 import express from 'express';
 import morgan from 'morgan';
