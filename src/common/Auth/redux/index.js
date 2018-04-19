@@ -1,6 +1,6 @@
 import { createAction, createTypes } from 'redux-vertical';
 
-const ns = 'auth';
+export const ns = 'auth';
 
 export const types = createTypes([
   'onRouteSignIn',

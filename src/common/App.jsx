@@ -9,7 +9,8 @@ import './index.global.sss';
 import styles from './app.sss';
 
 import Nav from './Nav';
-import Auth from './Auth';
+import NotFound from './NotFound';
+import { nsToComponent } from './routes';
 import { mainRouterSelector } from './routes/redux';
 
 const cx = classnames.bind(styles);
@@ -18,13 +19,14 @@ const mapStateToProps = state => ({
   route: mainRouterSelector(state),
 });
 
-export function App() {
+export function App({ route }) {
+  const Comp = nsToComponent[route] || NotFound;
   return (
     <div className={ cx('main') }>
       <Nav />
       <div className={ cx('main-content') }>
         <h1>Hello WNDLR</h1>
-        <Auth />
+        <Comp />
       </div>
     </div>
   );

@@ -1,6 +1,6 @@
 import { isLocationAction } from 'redux-first-router';
 import { addNS } from 'redux-vertical';
-import { routesMap as authRoutes } from '../../Auth/redux';
+import { ns as authNS, routesMap as authRoutes } from '../../Auth/redux';
 
 const ns = 'mainRouter';
 
@@ -14,7 +14,7 @@ export default addNS(ns, function mainRouterReducer(
     return state;
   }
   if (authRoutes[action.type]) {
-    return 'auth';
+    return authNS;
   }
   return '';
 });
