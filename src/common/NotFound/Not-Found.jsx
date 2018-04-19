@@ -8,11 +8,7 @@ const cx = classnames.bind(styles);
 const propTypes = {};
 
 export default function NotFound() {
-  return (
-    <div className={ cx('not-found') }>
-      404 - Not Found
-    </div>
-  );
+  return <div className={ cx('not-found') }>404 - Not Found</div>;
 }
 NotFound.displayName = 'NotFound';
 NotFound.propTypes = propTypes;

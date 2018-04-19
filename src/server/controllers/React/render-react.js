@@ -3,9 +3,9 @@ import { Observable } from 'rxjs';
 import { renderToString } from 'react-dom/server';
 import createHistory from 'history/createMemoryHistory';
 import { NOT_FOUND } from 'redux-first-router';
+import requireWatch from 'require-watch';
 
-import { createApp, ssrStateKey } from '../../common-to-server.js';
-
+requireWatch(require.resolve('../../common-to-server.js'));
 const log = createDebugger('wndlr:server:controllers:React:render');
 const renderHtml = ({ markup, state }) => `
 <!doctype html>
@@ -23,6 +23,7 @@ const renderHtml = ({ markup, state }) => `
 
 export default function renderReact(app) {
   app.get('*', (req, res, next) => {
+    const { createApp, ssrStateKey } = require('../../common-to-server.js');
     const { originalUrl } = req;
     createApp({
       history: createHistory({ initialEntries: [ originalUrl ] }),

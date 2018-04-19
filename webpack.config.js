@@ -12,7 +12,7 @@ module.exports = env => {
     entry: ifDev(
       {
         bundle: [
-          'webpack-hot-middleware/client',
+          'webpack-hot-middleware/client?overlay=true',
           clientEntry.bundle,
         ],
       },
