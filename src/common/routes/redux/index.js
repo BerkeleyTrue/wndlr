@@ -1,13 +1,18 @@
+// @flow
 import { isLocationAction } from 'redux-first-router';
 import { addNS } from 'redux-vertical';
 import { ns as authNS, routesMap as authRoutes } from '../../Auth/redux';
 
 const ns = 'mainRouter';
 
-export const mainRouterSelector = state => state[ns];
+type GlobalState = {
+  [ns: string]: string,
+};
+
+export const mainRouterSelector = (state: GlobalState) => state[ns];
 
 export default addNS(ns, function mainRouterReducer(
-  state = 'NotFound',
+  state: string = 'NotFound',
   action,
 ) {
   if (!isLocationAction(action)) {

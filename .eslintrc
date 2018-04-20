@@ -7,6 +7,7 @@
   },
   "parser": "babel-eslint",
   "plugins": [
+    "flowtype",
     "class-property",
     "import",
     "jsx-a11y",
@@ -28,6 +29,7 @@
     "ga": true
   },
   "extends": [
+    "plugin:flowtype/recommended",
     "plugin:jsx-a11y/recommended"
   ],
   "rules": {
@@ -175,7 +177,6 @@
     "yoda": 0,
 
     "jsx-quotes": [2, "prefer-single"],
-    "react/display-name": 2,
     "react/jsx-boolean-value": [2, "always"],
     "react/jsx-closing-bracket-location": [ 2, { "selfClosing": "line-aligned", "nonEmpty": "props-aligned" } ],
     "react/jsx-closing-tag-location": [ "error" ],
@@ -194,7 +195,7 @@
     "react/no-did-mount-set-state": 2,
     "react/no-did-update-set-state": 2,
     "react/no-multi-comp": [2, { "ignoreStateless": true } ],
-    "react/prop-types": 2,
+    "react/prop-types": 0,
     "react/react-in-jsx-scope": 2,
     "react/self-closing-comp": 2,
 

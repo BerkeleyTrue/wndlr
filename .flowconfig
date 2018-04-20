@@ -1,0 +1,12 @@
+[ignore]
+.*/node_modules/findup/.*
+[include]
+
+[libs]
+
+[lints]
+
+[options]
+module.name_mapper.extension='sss' -> '<PROJECT_ROOT>/flow/SSSModule.js'
+
+[strict]

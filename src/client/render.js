@@ -1,3 +1,5 @@
+// @flow
+import type { Element } from 'react';
 import { hydrate, unmountComponentAtNode } from 'react-dom';
 import { Observable } from 'rxjs';
 
@@ -6,14 +8,18 @@ import { Observable } from 'rxjs';
 //   DomContainer: DOMNode
 // ) => Observable[RootInstance]
 
-export default function render(element, DOMContainer) {
+export default function render(
+  element: Element<any>,
+  DOMContainer: HTMLElement,
+) {
   return Observable.create(observer => {
     try {
       hydrate(element, DOMContainer, function() {
         observer.next(this);
       });
     } catch (e) {
-      return observer.error(e);
+      observer.error(e);
+      return undefined;
     }
 
     return () => unmountComponentAtNode(DOMContainer);

@@ -1,3 +1,4 @@
+// @flow
 import isDev from 'isdev';
 import createDebugger from 'debug';
 import createHistory from 'history/createBrowserHistory';
@@ -7,13 +8,11 @@ import { BehaviorSubject } from 'rxjs/BehaviorSubject';
 import render from './render.js';
 import { ssrStateKey, createApp } from '../common';
 
-const hotReloadTimeout = 2000;
 const log = createDebugger('wndlr:client');
 const createRootKey = () => Math.random();
 
 const {
   devToolsExtension,
-  location,
   document,
   __wndlr__: { [ssrStateKey]: SSRState = {} } = {},
 } = window;
@@ -65,13 +64,6 @@ if (process.env.NODE_ENV !== 'production') {
       log('hot reloading createApp');
       // a new createApp function had been found, hot reload that shizzle
       createApp$.next(require('../common').createApp);
-    });
-    module.hot.accept(() => {
-      // note: not sure this is every called with the above in place
-      log('hot reached root component');
-      log('reloading the page to get latest updates');
-      // saveToColdStorage(store.getState());
-      setTimeout(() => location.reload(), hotReloadTimeout);
     });
   }
 }

@@ -1,3 +1,4 @@
+// @flow
 import React from 'react';
 import classnames from 'classnames/bind';
 import Link from 'redux-first-router-link';
@@ -6,7 +7,6 @@ import styles from './nav-bar.sss';
 import { onRouteHome } from '../redux';
 import { onRouteSignIn } from '../Auth/redux';
 
-const propTypes = {};
 const cx = classnames.bind(styles);
 
 export default function NavBar() {
@@ -25,4 +25,3 @@ export default function NavBar() {
   );
 }
 NavBar.displayName = 'NavBar';
-NavBar.propTypes = propTypes;

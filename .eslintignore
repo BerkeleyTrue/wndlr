@@ -2,3 +2,4 @@ node_modules
 dist
 coverage
 !.babelrc.js
+flow-typed/npm

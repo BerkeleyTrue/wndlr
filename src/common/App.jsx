@@ -1,3 +1,4 @@
+// @flow
 import _ from 'lodash';
 import React from 'react';
 import { hot } from 'react-hot-loader';
@@ -19,7 +20,11 @@ const mapStateToProps = state => ({
   route: mainRouterSelector(state),
 });
 
-export function App({ route }) {
+type Props = {
+  route: string,
+};
+
+export function App({ route }: Props) {
   const Comp = nsToComponent[route] || NotFound;
   return (
     <div className={ cx('main') }>

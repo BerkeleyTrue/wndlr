@@ -1,3 +1,4 @@
+// @flow
 import { createAction, createTypes } from 'redux-vertical';
 
 export const ns = 'auth';

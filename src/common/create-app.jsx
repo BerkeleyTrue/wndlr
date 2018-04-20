@@ -1,11 +1,16 @@
+// @flow
 import _ from 'lodash';
 import React from 'react';
+import type { Element } from 'react';
+import type { Observable } from 'rxjs';
 import createDebugger from 'debug';
 import { createStore, compose, applyMiddleware } from 'redux';
+import type { Store } from 'redux';
 import { Provider } from 'react-redux';
+import type { BrowserHistory, MemoryHistory } from 'history';
 import { selectLocationState, connectRoutes } from 'redux-first-router';
+import type { Location } from 'redux-first-router';
 import { of } from 'rxjs/observable/of';
-import { empty } from 'rxjs/observable/empty';
 import { addNS } from 'redux-vertical';
 
 import App from './App.jsx';
@@ -14,6 +19,11 @@ import createReducer from './create-reducer.js';
 
 const log = createDebugger('wndlr:common:create-app');
 
+type CreateAppReturn = {
+  appElement: Element<any>,
+  store: Store<any, any>,
+  location: Location,
+};
 export default function createApp({
   // Note: root key is used to force react to render
   // a new tree on subsequent render(appElement) calls.
@@ -22,7 +32,12 @@ export default function createApp({
   history,
   defaultState,
   enhancer: sideEnhancer = _.identity,
-}) {
+}: {
+  rootKey: number,
+  enhancer: Function,
+  defaultState: any,
+  history: BrowserHistory | MemoryHistory,
+}): Observable<CreateAppReturn> {
   const {
     reducer: routesReducer,
     middleware: routesMiddleware,
@@ -61,8 +76,6 @@ export default function createApp({
   return of({
     appElement,
     store,
-    epic: () => empty(),
     location,
-    notFound: false,
   });
 }
