@@ -322,6 +322,11 @@ declare class rxjs$Observable<+T> {
     source2: rxjs$Observable<V>
   ): rxjs$Observable<T | U | V>;
   static merge(...sources: rxjs$Observable<T>[]): rxjs$Observable<T>;
+  static if<T, T2>(
+    condition: () => boolean | void,
+    thenSource?: rxjs$Observable<T> | void,
+    elseSource?: rxjs$Observable<T2> | void
+  ): rxjs$Observable<T | T2>;
 
   static never<U>(): rxjs$Observable<U>;
 

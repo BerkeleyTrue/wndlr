@@ -8,7 +8,7 @@
     "lint": "eslint --ext=js,jsx .",
     "postlint": "npm run flow",
     "lint:fix": "eslint . --ext=js,jsx --fix",
-    "flow": "flow",
+    "flow": "flow check",
     "format": "prettier '*.js' 'src/**/*.!(global.sss|sss)' --trailing-comma all --single-quote --write",
     "postformat": "npm run lint:fix",
     "build": "npm run build:client && npm run build:server:client && npm run build:server",
@@ -56,7 +56,7 @@
     "redux-first-router": "^1.9.19",
     "redux-first-router-link": "^1.4.2",
     "redux-observable": "^0.18.0",
-    "redux-vertical": "^1.0.0",
+    "redux-vertical": "^1.1.2",
     "rxjs": "^5.5.10",
     "source-map-support": "^0.5.4",
     "sugarss": "^1.0.1"

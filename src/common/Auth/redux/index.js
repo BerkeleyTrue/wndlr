@@ -9,7 +9,9 @@ export const types = createTypes([
 ], ns);
 
 export const routesMap = {
+  // $FlowFixMe
   [types.onRouteSignIn]: '/sign-in',
+  // $FlowFixMe
   [types.onRouteSignUp]: '/sign-up',
 };
 

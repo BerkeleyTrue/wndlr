@@ -1,3 +1,5 @@
+// @flow
+import type { $Application } from 'express';
 import isDev from 'isdev';
 import webpack from 'webpack';
 import webpackDevMiddleware from 'webpack-dev-middleware';
@@ -10,7 +12,7 @@ const log = createDebugger('wndlr:server:components:dev-server');
 const clientConfig = config(process.env.NODE_ENV || 'development');
 const compiler = webpack(clientConfig);
 
-export default function devServer(app) {
+export default function devServer(app: $Application) {
   if (!isDev) {
     return;
   }

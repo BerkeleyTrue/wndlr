@@ -1,3 +1,5 @@
+// @flow
+import type { $Application, NextFunction } from 'express';
 import createDebugger from 'debug';
 import { Observable } from 'rxjs';
 import { renderToString } from 'react-dom/server';
@@ -21,8 +23,8 @@ const renderHtml = ({ markup, state }) => `
 </html>
 `;
 
-export default function renderReact(app) {
-  app.get('*', (req, res, next) => {
+export default function renderReact(app: $Application) {
+  app.get('*', (req, res, next: NextFunction) => {
     const { createApp, ssrStateKey } = require('../../common-to-server.js');
     const { originalUrl } = req;
     createApp({
@@ -32,11 +34,11 @@ export default function renderReact(app) {
         ({ store, appElement, location: { type, kind, pathname } }) => {
           const ifNotRender = Observable.if(
             () => type === NOT_FOUND,
-            Observable.empty().do(null, null, () => {
+            Observable.empty().do(undefined, undefined, () => {
               log(`createApp tried to find ${originalUrl} but was not found`);
               next();
             }),
-            Observable.empty().do(null, null, () => {
+            Observable.empty().do(undefined, undefined, () => {
               log(`createApp found a redirect to ${pathname}`);
               res.redirect(pathname);
             }),
@@ -44,7 +46,7 @@ export default function renderReact(app) {
           return Observable.if(
             () => type === NOT_FOUND || kind === 'redirect',
             ifNotRender,
-            Observable.empty().do(null, null, () => {
+            Observable.empty().do(undefined, undefined, () => {
               log('rendering react page');
               const state = store.getState();
               // expose redux ssr state on window.__wndlr__.data
@@ -59,6 +61,6 @@ export default function renderReact(app) {
           );
         },
       )
-      .subscribe(null, next);
+      .subscribe(undefined, next);
   });
 }

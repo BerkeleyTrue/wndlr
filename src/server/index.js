@@ -1,3 +1,4 @@
+// @flow
 import 'dotenv/config';
 import 'source-map-support/register';
 import _ from 'lodash';
@@ -31,6 +32,7 @@ renderReact(app);
 // server static files
 app.use(express.static('dist'));
 
+// $FlowFixMe
 app.start = _.once(() => {
   const server = app.listen(app.get('port'), () => {
     app.emit('started');
