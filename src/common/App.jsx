@@ -12,11 +12,13 @@ import styles from './app.sss';
 import Nav from './Nav';
 import NotFound from './NotFound';
 import { nsToComponent } from './routes';
-import { mainRouterSelector } from './routes/redux';
+import { mainRouterSelector, type State as RoutesState } from './routes/redux';
+
+type AppState = RoutesState
 
 const cx = classnames.bind(styles);
 const propTypes = {};
-const mapStateToProps = state => ({
+const mapStateToProps = (state: AppState) => ({
   route: mainRouterSelector(state),
 });
 

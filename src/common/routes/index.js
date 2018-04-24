@@ -1,4 +1,6 @@
 // @flow
+import type { ComponentType } from 'react';
+
 import Home from '../Home';
 import { ns as homeNS, routesMap as homeRoutes } from '../Home/redux';
 import Auth from '../Auth';
@@ -9,7 +11,10 @@ export default {
   ...authRoutes,
 };
 
-export const nsToComponent = {
+type NSToComponent = {
+  [ns: string]: ComponentType<*>
+}
+export const nsToComponent: NSToComponent = {
   [homeNS]: Home,
   [authNS]: Auth,
 };

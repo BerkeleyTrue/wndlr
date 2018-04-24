@@ -4,6 +4,7 @@ import createDebugger from 'debug';
 import createHistory from 'history/createBrowserHistory';
 import { Subject } from 'rxjs/Subject';
 import { BehaviorSubject } from 'rxjs/BehaviorSubject';
+import type { StoreEnhancer as Enhancer } from 'redux';
 
 import render from './render.js';
 import { ssrStateKey, createApp } from '../common';
@@ -15,10 +16,17 @@ const {
   devToolsExtension,
   document,
   __wndlr__: { [ssrStateKey]: SSRState = {} } = {},
+}: {
+  devToolsExtension: () => Enhancer<*, *>,
+  document: Document,
+  __wndlr__: any,
 } = window;
 
 const history = createHistory();
-const DOMContainer = document.getElementById('app');
+const DOMContainer: HTMLElement | null = document.getElementById('app');
+if (!DOMContainer) {
+  throw new TypeError('Dom Container could not be found');
+}
 
 // We create a stream of the createApp function so that we can
 // hot reload the function.
@@ -44,7 +52,10 @@ createApp$
         rootKey: createRootKey(),
         history,
         defaultState: getState(),
-        enhancer: isDev && devToolsExtension && devToolsExtension(),
+        enhancer:
+          isDev && typeof devToolsExtension === 'function' ?
+            devToolsExtension() :
+            undefined,
       }),
   )
   // as a side effect, we pass the newest getState function into the

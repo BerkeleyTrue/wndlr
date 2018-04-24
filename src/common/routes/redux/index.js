@@ -4,13 +4,13 @@ import { addNS } from 'redux-vertical';
 import { ns as homeNS, routesMap as homeRoutes } from '../../Home/redux';
 import { ns as authNS, routesMap as authRoutes } from '../../Auth/redux';
 
-const ns = 'mainRouter';
+export const ns = 'mainRouter';
 
-type GlobalState = {
+export type State = {
   [ns: string]: string,
 };
 
-export const mainRouterSelector = (state: GlobalState) => state[ns];
+export const mainRouterSelector = (state: State) => state[ns];
 
 export default addNS(ns, function mainRouterReducer(
   state: string = 'NotFound',

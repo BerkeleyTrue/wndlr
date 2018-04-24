@@ -1,15 +1,16 @@
 // @flow
-import _ from 'lodash';
-import React from 'react';
 import type { Element } from 'react';
 import type { Observable } from 'rxjs';
+import type { Store, StoreEnhancer, Middleware, Reducer } from 'redux';
+import type { BrowserHistory, MemoryHistory } from 'history';
+import type { Location } from 'redux-first-router';
+
+import _ from 'lodash';
+import React from 'react';
 import createDebugger from 'debug';
 import { createStore, compose, applyMiddleware } from 'redux';
-import type { Store } from 'redux';
 import { Provider } from 'react-redux';
-import type { BrowserHistory, MemoryHistory } from 'history';
 import { selectLocationState, connectRoutes } from 'redux-first-router';
-import type { Location } from 'redux-first-router';
 import { of } from 'rxjs/observable/of';
 import { addNS } from 'redux-vertical';
 
@@ -24,24 +25,32 @@ type CreateAppReturn = {
   store: Store<any, any>,
   location: Location,
 };
-export default function createApp({
+export default function createApp<
+  E: StoreEnhancer<*, *>,
+  M: Middleware<*, *>,
+  R: Reducer<*, *>,
+>({
   // Note: root key is used to force react to render
   // a new tree on subsequent render(appElement) calls.
   // This prevents the Provider warning about the store object changing
-  rootKey,
-  history,
   defaultState,
   enhancer: sideEnhancer = _.identity,
+  history,
+  rootKey,
 }: {
-  rootKey: number,
-  enhancer: Function,
   defaultState: any,
+  enhancer?: E,
   history: BrowserHistory | MemoryHistory,
+  rootKey: number,
 }): Observable<CreateAppReturn> {
   const {
     reducer: routesReducer,
     middleware: routesMiddleware,
     enhancer: routesEnhancer,
+  }: {
+    enhancer: E,
+    middleware: M,
+    reducer: R,
   } = connectRoutes(history, routesMap);
 
   addNS('location', routesReducer);
