@@ -4,7 +4,7 @@ import classnames from 'classnames/bind';
 import Link from 'redux-first-router-link';
 
 import styles from './nav-bar.sss';
-import { onRouteHome } from '../redux';
+import { onRouteHome } from '../Home/redux';
 import { onRouteSignIn } from '../Auth/redux';
 
 const cx = classnames.bind(styles);
