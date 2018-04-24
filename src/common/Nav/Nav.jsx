@@ -12,8 +12,11 @@ const cx = classnames.bind(styles);
 export default function NavBar() {
   return (
     <nav className={ cx('nav-bar') }>
-      <Link to={ onRouteHome() }>
-        <div className={ cx('logo') }>WNDLR</div>
+      <Link
+        className={ cx('logo') }
+        to={ onRouteHome() }
+        >
+        WNDLR
       </Link>
       <Link
         className={ cx('nav-auth-button') }

@@ -16,8 +16,8 @@ export default function Home() {
       </header>
       <article>
         <p>
-          WNDLR is a fitness app.
-          It's designed for busy people who want to lift.
+          WNDLR is a fitness app. It's designed for busy people who want to
+          lift.
         </p>
       </article>
     </div>
