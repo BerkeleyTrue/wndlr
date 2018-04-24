@@ -1,6 +1,8 @@
 module.exports = {
   parser: 'sugarss',
   plugins: {
+    'postcss-nested-ancestors': {},
+    'postcss-nested': {},
     'postcss-import': {},
     'postcss-flexbox': {},
     'postcss-button': {},
