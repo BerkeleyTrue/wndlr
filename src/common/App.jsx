@@ -28,11 +28,12 @@ export function App({ route }: Props) {
   const Comp = nsToComponent[route] || NotFound;
   return (
     <div className={ cx('main') }>
-      <Nav />
-      <div className={ cx('main-content') }>
-        <h1>Hello WNDLR</h1>
+      <header>
+        <Nav />
+      </header>
+      <section className={ cx('main-content') }>
         <Comp />
-      </div>
+      </section>
     </div>
   );
 }

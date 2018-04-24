@@ -11,7 +11,15 @@ const propTypes = {};
 export default function Home() {
   return (
     <div className={ cx('home') }>
-      Home
+      <header>
+        <h1>Welcome to WNDLR</h1>
+      </header>
+      <article>
+        <p>
+          WNDLR is a fitness app.
+          It's designed for busy people who want to lift.
+        </p>
+      </article>
     </div>
   );
 }
