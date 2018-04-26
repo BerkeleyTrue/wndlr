@@ -1,27 +1,24 @@
 @import '../vars.global.sss'
 $navbar-height: 32px
 
+@button navbar-button
+  button-background-color: $skip-azure
+  button-background-color-hover: $skip-azure
+  button-border: 0
+  button-color-hover: $text-header
+  button-color: white
+
 .nav-bar
   background-color: $skip-azure
   box: horizontal space-between
   color: $bg-color
   height: $navbar-height
-  padding: 0 $padding-sm-vertical
+  padding: 0 $padding-xl-vertical
 
 .nav-auth-button
-  background-color: inherit
-  button: default-button
-  color: $bg-color
+  button: navbar-button
   padding: $padding-xs-horizontal $padding-sm-vertical
-  &:hover
-    background-color: $skip-cyan
-    color: $text-header
 
 .logo
-  background-color: inherit
-  button: default-button
-  color: $bg-color
+  button: navbar-button
   padding: $padding-xs-horizontal $padding-sm-vertical
-  &:hover
-    background-color: $skip-cyan
-    color: $text-header
