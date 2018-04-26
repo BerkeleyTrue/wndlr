@@ -14,7 +14,7 @@ import NotFound from './NotFound';
 import { nsToComponent } from './routes';
 import { mainRouterSelector, type State as RoutesState } from './routes/redux';
 
-type AppState = RoutesState
+type AppState = RoutesState;
 
 const cx = classnames.bind(styles);
 const propTypes = {};

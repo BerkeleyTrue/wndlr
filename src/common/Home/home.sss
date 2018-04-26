@@ -1,0 +1,16 @@
+@import '../vars.global.sss'
+
+.home
+  box: vertical space-between
+  min-height: 100%
+  text-align: center
+  h1
+    font-size: 5rem
+  .article
+    box: vertical middle
+    height: 375px
+    min-height: 40%
+    &:nth-child(3n-1)
+      background-color: $secondary
+    &:nth-child(3n)
+      background-color: $tertiary

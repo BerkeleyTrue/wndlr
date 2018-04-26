@@ -12,8 +12,8 @@ export default {
 };
 
 type NSToComponent = {
-  [ns: string]: ComponentType<*>
-}
+  [ns: string]: ComponentType<*>,
+};
 export const nsToComponent: NSToComponent = {
   [homeNS]: Home,
   [authNS]: Auth,
