@@ -26,7 +26,11 @@ module.exports = function(context, options = {}) {
           targets: removeEmpty({
             node: ifNode('current'),
             // env does not currently support browserslistrc
-            browsers: ifClient('last 2 versions'),
+            browsers: ifClient([
+              '>0.25%',
+              'not ie 11',
+              'not op_mini all',
+            ]),
           }),
         },
       ],
