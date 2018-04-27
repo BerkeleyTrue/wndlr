@@ -8,7 +8,6 @@ import expressState from 'express-state';
 import createDebugger from 'debug';
 import isDev from 'isdev';
 
-import { devServer } from './components';
 import { renderReact } from './controllers';
 
 const log = createDebugger('wndlr:server');
@@ -23,9 +22,6 @@ app.set('state namespace', '__wndlr__');
 app.use(morgan('dev'));
 
 expressState.extend(app);
-
-// server webpack client bundle
-devServer(app);
 // serve react app
 renderReact(app);
 
