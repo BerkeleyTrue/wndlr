@@ -1,5 +1,5 @@
 // @flow
-import React, { type Element } from 'react';
+import React, { type Node } from 'react';
 import classnames from 'classnames/bind';
 
 import styles from './section.sss';
@@ -7,10 +7,10 @@ import styles from './section.sss';
 const cx = classnames.bind(styles);
 
 type Props = {
-  children: Element<*>,
+  children: Node,
   className: string | void,
 };
-export default function Section({ children, className }: Props): Element<*> {
+export default function Section({ children, className }: Props) {
   return <section className={ cx('section', className) }>{ children }</section>;
 }
 

@@ -29,7 +29,7 @@ export default function Home() {
           workout a day. Four times a week.
         </p>
       </article>
-      <arcticle className={ cx('article') }>
+      <article className={ cx('article') }>
         <header>
           <h1>Fast</h1>
         </header>
@@ -37,7 +37,7 @@ export default function Home() {
           You only need 20 minutes at the gym to get your lift in. No excuses,
           just get in, get it done, and get out.
         </p>
-      </arcticle>
+      </article>
     </Section>
   );
 }

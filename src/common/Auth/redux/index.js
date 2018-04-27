@@ -1,5 +1,6 @@
 // @flow
-import { createAction, createTypes } from 'redux-vertical';
+import { composeReducers, createAction, createTypes } from 'redux-vertical';
+import { combineForms } from 'react-redux-form';
 
 export const ns = 'auth';
 
@@ -17,3 +18,11 @@ export const routesMap = {
 
 export const onRouteSignIn = createAction(types.onRouteSignIn);
 export const onRouteSignUp = createAction(types.onRouteSignUp);
+
+export const formModels = {
+  user: {
+    email: '',
+  },
+};
+
+export default composeReducers(ns, combineForms(formModels, ns));
