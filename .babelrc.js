@@ -4,6 +4,7 @@ module.exports = function(context, options = {}) {
   const {
     ifClient,
     ifNotClient: ifNode,
+    ifDevelopment: ifDev,
     ifNotDevelopment: ifProd,
   } = getIfUtils(
     {
@@ -31,6 +32,7 @@ module.exports = function(context, options = {}) {
       ],
     ]),
     plugins: removeEmpty([
+      ifDev('flow-react-proptypes'),
       'lodash',
       [
         'transform-runtime',
