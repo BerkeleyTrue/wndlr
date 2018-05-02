@@ -7,8 +7,9 @@ import morgan from 'morgan';
 import expressState from 'express-state';
 import createDebugger from 'debug';
 import isDev from 'isdev';
+import bodyParser from 'body-parser';
 
-import { renderReact } from './controllers';
+import { renderReact, graphql } from './controllers';
 
 const log = createDebugger('wndlr:server');
 log.enabled = true;
@@ -20,9 +21,10 @@ app.set('port', process.env.PORT);
 app.set('state namespace', '__wndlr__');
 
 app.use(morgan('dev'));
-
+app.use(bodyParser.json());
 expressState.extend(app);
 // serve react app
+graphql(app);
 renderReact(app);
 
 // server static files
