@@ -9,7 +9,7 @@ import createDebugger from 'debug';
 import isDev from 'isdev';
 import bodyParser from 'body-parser';
 
-import { renderReact, graphql } from './controllers';
+import { renderReact, graphql, dataSource } from './controllers';
 
 const log = createDebugger('wndlr:server');
 log.enabled = true;
@@ -23,7 +23,8 @@ app.set('state namespace', '__wndlr__');
 app.use(morgan('dev'));
 app.use(bodyParser.json());
 expressState.extend(app);
-// serve react app
+
+dataSource(app);
 graphql(app);
 renderReact(app);
 

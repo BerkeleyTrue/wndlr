@@ -5,7 +5,7 @@ export const typeDefs = `
     isEmailVerified: Boolean
   }
 
-  type UserAuthen {
+  type UserSignIn {
     token: String
     emailAuthLinkTTL: Int
   }
