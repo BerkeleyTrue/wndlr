@@ -10,15 +10,15 @@ import isDev from 'isdev';
 import bodyParser from 'body-parser';
 
 import { renderReact, graphql, dataSource } from './controllers';
+import { general as config } from './config.js';
 
-const log = createDebugger('wndlr:server');
+const log = createDebugger(`${config.ns}:server`);
 log.enabled = true;
 
 const app = express();
 
 // setttings
-app.set('port', process.env.PORT);
-app.set('state namespace', '__wndlr__');
+_.forEach(config, (val, key) => app.set(key, val));
 
 app.use(morgan('dev'));
 app.use(bodyParser.json());
@@ -35,8 +35,12 @@ app.use(express.static('dist'));
 app.start = _.once(() => {
   const server = app.listen(app.get('port'), () => {
     app.emit('started');
+    log(`${app.get('dn')} server started`);
     log(`server started on port ${app.get('port')}`);
     log(`server is in ${isDev ? 'dev' : 'prod'} mode`);
+    if (app.get('proxyPort')) {
+      log(`server is behind proxyPort ${app.get('proxyPort')}`);
+    }
   });
 
   // on signal to kill, close server
@@ -45,7 +49,6 @@ app.start = _.once(() => {
     server.close(() => {
       log('Server is closed');
     });
-    // TODO: Disconnect db
   });
 });
 

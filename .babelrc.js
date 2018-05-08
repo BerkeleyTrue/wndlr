@@ -4,7 +4,6 @@ module.exports = function(context, options = {}) {
   const {
     ifClient,
     ifNotClient: ifNode,
-    ifDevelopment: ifDev,
     ifNotDevelopment: ifProd,
   } = getIfUtils(
     {
@@ -36,7 +35,6 @@ module.exports = function(context, options = {}) {
       ],
     ]),
     plugins: removeEmpty([
-      ifDev('flow-react-proptypes'),
       'lodash',
       [
         'transform-runtime',
@@ -46,6 +44,7 @@ module.exports = function(context, options = {}) {
           regenerator: false,
         },
       ],
+      'transform-export-extensions',
       'transform-object-rest-spread',
       ifProd('dev-expression'),
       ifClient('react-hot-loader/babel'),

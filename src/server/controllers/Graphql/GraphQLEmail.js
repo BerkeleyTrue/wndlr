@@ -27,7 +27,8 @@ export const GraphQLEmail = new GraphQLScalarType({
   },
   parseLiteral(ast) {
     if (ast.kind !== Kind.STRING) {
-      throw new GraphQLError(`type should be "String", found ${ast.kind}.`, [ ast ]);
+      const message = `type should be "String", found ${ast.kind}.`;
+      throw new GraphQLError(message, [ ast ]);
     }
     if (isEmail(ast.value)) {
       return ast.value;
@@ -59,7 +60,8 @@ export const GraphQLNormalizedEmail = new GraphQLScalarType({
   },
   parseLiteral(ast) {
     if (ast.kind !== Kind.STRING) {
-      throw new GraphQLError(`Type should be "String", found ${ast.kind}.`, [ ast ]);
+      const message = `Type should be "String", found ${ast.kind}.`;
+      throw new GraphQLError(message, [ ast ]);
     }
     if (isEmail(ast.value)) {
       return normalizeEmail(ast.value);

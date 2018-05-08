@@ -21,7 +21,7 @@ const host = process.env.HOST || 'localhost';
 const port = process.env.PORT || '3001';
 const syncPort = process.env.SYNC_PORT || '3000';
 // make sure sync ui port does not interfere with proxy port
-const syncUIPort = process.env.SYNC_UI_PORT || parseInt(syncPort, 10) + 2;
+const proxyPort = process.env.SYNC_UI_PORT || parseInt(syncPort, 10) + 2;
 
 const sync = browserSync.create('wndlr-sync-server');
 const webpackServerConfig = createWebpackServerConfig({
@@ -34,9 +34,10 @@ const errorNotifier = notify.onError({
   message: '<%= error %>',
 });
 
-function errorHandler(...args) {
+function errorHandler(err) {
   // Send error to notification center with gulp-notify
-  errorNotifier.apply(this, args);
+  errorNotifier.call(this, err);
+  console.error(err);
   // Keep gulp from hanging on this task
   this.emit('end');
 }
@@ -113,9 +114,11 @@ gulp.task('watch:server', [
     ignore: paths.server.ignore,
     env: {
       PORT: port,
+      PROXY_PORT: syncPort,
       DEBUG: process.env.DEBUG || 'wndlr:*',
       NODE_ENV: 'development',
     },
+    delay: '500',
   })
     .on('start', () => {
       if (!called) {
@@ -151,7 +154,7 @@ gulp.task(
     const compiler = webpack(webpackConfig);
     sync.init(
       {
-        ui: { port: syncUIPort },
+        ui: { port: proxyPort },
         proxy: {
           target: `http://${host}:${port}`,
           reqHeaders: ({ url: { hostname } }) => ({
