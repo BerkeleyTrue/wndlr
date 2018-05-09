@@ -5,6 +5,10 @@ import isDev from 'isdev';
 export const db = {
   url: process.env.DB_URL,
   name: process.env.DB_NAME,
+  auth: {
+    user: process.env.DB_USER,
+    password: process.env.DB_PASS,
+  },
 };
 
 type EmailConfig = {

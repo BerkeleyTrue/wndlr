@@ -20,10 +20,11 @@ export type DataSource = {
 
 const db = new Database({ url: settings.url });
 db.useDatabase(settings.name);
+db.useBasicAuth(settings.auth.user, settings.auth.password);
 
 export const dataSource: DataSource = {
   query(aqlQuery) {
-    return Observable.defer(() => this.db.query(aqlQuery));
+    return Observable.defer(() => db.query(aqlQuery));
   },
   queryOne(aqlQuery) {
     return this.query(aqlQuery).concatMap(cur => cur.next());

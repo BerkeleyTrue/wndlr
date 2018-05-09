@@ -9,7 +9,7 @@ import createDebugger from 'debug';
 import isDev from 'isdev';
 import bodyParser from 'body-parser';
 
-import { renderReact, graphql, dataSource } from './controllers';
+import { renderReact, graphql } from './controllers';
 import { general as config } from './config.js';
 
 const log = createDebugger(`${config.ns}:server`);
@@ -24,7 +24,6 @@ app.use(morgan('dev'));
 app.use(bodyParser.json());
 expressState.extend(app);
 
-dataSource(app);
 graphql(app);
 renderReact(app);
 
