@@ -43,6 +43,7 @@ function errorHandler(err) {
 }
 
 const paths = {
+  watch: [ '.env' ],
   server: {
     buildFiles: [
       'src/server/**/*.js',
@@ -193,8 +194,17 @@ gulp.task(
     'watch:bundle:dev-server',
   ],
   () => {
-    gulp.watch(paths.server.buildFiles, [ 'build:server' ]);
-    gulp.watch(paths.server.client.watch, [ 'bundle:server:client' ]);
+    gulp.watch([
+      ...paths.server.buildFiles,
+      ...paths.watch,
+    ], [ 'build:server' ]);
+    gulp.watch(
+      [
+        ...paths.server.client.watch,
+        ...paths.watch,
+      ],
+      [ 'bundle:server:client' ],
+    );
   },
 );
 
