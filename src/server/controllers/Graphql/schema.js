@@ -179,9 +179,8 @@ export const makeResolvers = function(app: $Application) {
                     Check your email and click the sign in link we sent you.
                   `,
                 }))
-                .toPromise()
             );
-          });
+          }).toPromise();
       },
     },
   };
