@@ -35,8 +35,8 @@ export const typeDefs = `
     """
     guid: String
 
-    created: Date
-    lastUpdated: Date
+    created: Int
+    lastUpdated: Int
   }
 
   """
@@ -46,11 +46,11 @@ export const typeDefs = `
   type UserSignIn {
     token: String
     ttl: Int
-    created: Date
+    created: Int
   }
 
   type Info {
-    message: string
+    message: String
   }
 
   type Mutation {
