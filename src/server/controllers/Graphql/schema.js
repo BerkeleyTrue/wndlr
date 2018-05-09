@@ -1,6 +1,7 @@
 // @flow
 import type { $Application } from 'express';
 import _ from 'lodash';
+import createDebugger from 'debug';
 import dedent from 'dedent';
 import { Observable } from 'rxjs';
 import { normalizeEmail } from 'validator';
@@ -12,6 +13,7 @@ import { sendMail, authUtils } from '../../utils';
 import { dataSource as ds } from '../../data-source';
 
 const ttl15Min = 15 * 60 * 1000;
+const log = createDebugger('wndlr:server:controllers:graphql');
 
 export const typeDefs = `
   """
@@ -76,43 +78,91 @@ export const makeResolvers = function(app: $Application) {
       sendSignInEmail: (root: any, { email }: { email: string }) => {
         const normalizedEmail = normalizeEmail(email);
         // check if the user already exists
-        return ds
+        log('normalizedEmail: ', normalizedEmail);
+        const queryUserNAuth = ds
           .queryOne(
             aql`
-              For user In users
-              Filter user.NormalizedEmail == ${normalizedEmail}
-              Limit 1
-              For auth In 1 OUTBOUND user._id userToAuthentication
-              Return { user, auth };
+              Let user = First(
+                For user In users
+                Filter user.normalizedEmail == ${normalizedEmail}
+                Limit 1
+                Return user
+              )
+
+              Let auth = !IS_NULL(user) ? First(
+                For auth In 1 OUTBOUND user._id userToAuthentication
+                Return auth
+              ) : NULL
+              Return { user, auth }
             `,
           )
-          .switchMap(({ user, auth } = {}) => {
-            // if no auth, create auth
-            const createUserIfNone = Observable.if(
-              _.constant(Boolean(!user)),
-              Observable.combineLatest(
-                authUtils.generateVerificationToken(),
-                authUtils.createToken(ttl15Min),
-                (guid, token) => ({ guid, token }),
-              ).switchMap(({ guid, token: { ttl, created, token } }) =>
+          .do(info => console.log('find results: ', info));
+
+        const [
+          userExists,
+          noUser,
+        ] = queryUserNAuth.partition(
+          ({ user }) => !!user,
+        );
+        const [ userExistsHasNoAuth ] = userExists.partition(
+          ({ auth }) => !!auth,
+        );
+
+        const createUserAndAuth = noUser
+          .switchMap(() =>
+            Observable.forkJoin(
+              authUtils.generateVerificationToken(),
+              authUtils.createToken(ttl15Min),
+              (guid, token) => ({ guid, token }),
+            ),
+          )
+          .switchMap(({ guid, token: { ttl, created, token } }) =>
+            ds
+              .queryOne(
+                aql`
+                  // create user and authen
+                  Insert {
+                    email: ${email},
+                    normalizedEmail: ${normalizedEmail},
+                    created: ${Date.now()},
+                    lastUpdated: ${Date.now()},
+                    guid: ${guid}
+                  } Into users
+                  Let user = NEW
+                  Insert {
+                    ttl: ${ttl},
+                    created: ${created},
+                    token: ${token}
+                  } Into userAuthentications
+                  // store new doc
+                  Let auth = NEW
+                  // create edge to user
+                  Insert {
+                    _from: user._id,
+                    _to: auth._id
+                  } Into userToAuthentication
+              `,
+              )
+              .do(() => log('create user'))
+              .mapTo({ token, guid }),
+          );
+
+        const createAuthForUser = userExistsHasNoAuth
+          .switchMap(({ user }) =>
+            authUtils
+              .createToken(ttl15Min)
+              .switchMap(({ ttl, created, token }) =>
                 ds
                   .queryOne(
                     aql`
-                      Insert {
-                        email: ${email},
-                        normalizeEmail: ${normalizedEmail},
-                        created: ${Date.now()},
-                        lastUpdated: ${Date.now()},
-                        guid: ${guid},
-                      } Into users;
-                      Let user = New;
+                      // create authen
                       Insert {
                         ttl: ${ttl},
                         created: ${created},
                         token: ${token}
                       } Into userAuthentications
                       // store new doc
-                      Let auth = New
+                      Let auth = NEW
                       // create edge to user
                       Insert {
                         _from: ${user._id},
@@ -120,67 +170,42 @@ export const makeResolvers = function(app: $Application) {
                       } Into userToAuthentication
                     `,
                   )
-                  .mapTo({ token, guid }),
+                  .do(() => log('create auth'))
+                  .mapTo({ token, guid: user.guid }),
               ),
-            );
+          )
+          .do(auth => console.log('create auth for user: ', auth));
 
-            const createAuthTokenIfNone = Observable.if(
-              _.constant(user && !auth),
-              // user has no auth doc,
-              // create one and assoc with user
-              authUtils
-                .createToken(ttl15Min)
-                .switchMap(({ ttl, created, token }) =>
-                  // save token to db
-                  ds
-                    .queryOne(
-                      aql`
-                    // create authen
-                    Insert {
-                      ttl: ${ttl},
-                      created: ${created},
-                      token: ${token}
-                    } Into userAuthentications
-                    // store new doc
-                    Let auth = New
-                    // create edge to user
-                    Insert {
-                      _from: ${user._id},
-                      _to: auth._id
-                    } Into userToAuthentication
-                  `,
-                    )
-                    .mapTo({ token, guid: user.guid }),
-                ),
-            );
-
-            return (
-              Observable.combineLatest(
-                createUserIfNone,
-                createAuthTokenIfNone,
-                (a, b) => a || b,
-              )
-                .map(({ guid, token }) =>
-                  sendMail({
-                    to: email,
-                    subject: 'sign in',
-                    text: renderUserSignInMail({
-                      token,
-                      guid: guid,
-                      url: app.get('url'),
-                    }),
-                  }),
-                )
-                // sign in link sent
-                // send message to client app
-                .map(() => ({
-                  message: dedent`
-                    We found your existing account.
-                    Check your email and click the sign in link we sent you.
-                  `,
-                }))
-            );
-          }).toPromise();
+        return (
+          Observable.merge(createUserAndAuth, createAuthForUser)
+            .do(
+              () => console.log('foo'),
+              err => console.log('err: ', err),
+              () => console.log('done'),
+            )
+            .switchMap(({ guid, token }) =>
+              sendMail({
+                to: email,
+                subject: 'sign in',
+                text: renderUserSignInMail({
+                  token,
+                  guid: guid,
+                  url: app.get('url'),
+                }),
+              }),
+            )
+            .do(emailInfo => console.log('emailInfo: ', emailInfo))
+            // sign in link sent
+            // send message to client app
+            .map(() => ({
+              message: dedent`
+                We found your existing account.
+                Check your email and click the sign in link we sent you.
+              `,
+            }))
+            .do(data => console.log('data: ', data))
+            .toPromise()
+        );
       },
     },
   };
