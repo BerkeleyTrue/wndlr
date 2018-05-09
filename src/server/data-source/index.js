@@ -1,5 +1,4 @@
 // @flow
-import type { $Application } from 'express';
 import { Observable } from 'rxjs';
 import { Database } from 'arangojs';
 
@@ -30,7 +29,3 @@ export const dataSource: DataSource = {
     return this.query(aqlQuery).concatMap(cur => cur.next());
   },
 };
-
-export default function addDataSource(app: $Application) {
-  app.set('dataSource', dataSource);
-}
