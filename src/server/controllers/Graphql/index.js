@@ -2,7 +2,7 @@ import isDev from 'isdev';
 import { graphqlExpress, graphiqlExpress } from 'apollo-server-express';
 import { makeExecutableSchema } from 'graphql-tools';
 
-import { typeDefs, resolvers } from './schema.js';
+import { typeDefs, makeResolvers } from './schema.js';
 import {
   typeDefs as emailTypeDefs,
   resolvers as emailResolvers,
@@ -24,7 +24,7 @@ export default function graphql(app) {
     ],
     resolvers: [
       emailResolvers,
-      resolvers,
+      makeResolvers(app),
     ],
   });
 
