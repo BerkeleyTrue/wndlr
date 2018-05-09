@@ -1,6 +1,5 @@
 // @flow
 import type { $Application } from 'express';
-import type { DataSource } from '../data-source.js';
 import _ from 'lodash';
 import dedent from 'dedent';
 import { Observable } from 'rxjs';
@@ -10,6 +9,7 @@ import { aql } from 'arangojs';
 import renderUserSignInMail from './user-sign-in.js';
 import renderUserSignUpMail from './user-sign-up.js';
 import { sendMail, authUtils } from '../../utils';
+import { dataSource as ds } from '../../data-source';
 
 const ttl15Min = 15 * 60 * 1000;
 
@@ -59,7 +59,6 @@ export const typeDefs = `
 `;
 
 export const makeResolvers = function(app: $Application) {
-  const ds: DataSource = app.get('dataSource');
   return {
     Mutation: {
       // find user with normalized(email)
