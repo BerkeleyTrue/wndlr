@@ -144,7 +144,7 @@ export const makeResolvers = function(app: $Application) {
               `,
               )
               .do(() => log('create user'))
-              .mapTo({ token, guid }),
+              .mapTo({ token, guid, isSignUp: true }),
           );
 
         const createAuthForUser = userExistsHasNoAuth
@@ -171,7 +171,7 @@ export const makeResolvers = function(app: $Application) {
                     `,
                   )
                   .do(() => log('create auth'))
-                  .mapTo({ token, guid: user.guid }),
+                  .mapTo({ token, guid: user.guid, isSignUp: false }),
               ),
           )
           .do(auth => console.log('create auth for user: ', auth));
@@ -183,11 +183,17 @@ export const makeResolvers = function(app: $Application) {
               err => console.log('err: ', err),
               () => console.log('done'),
             )
-            .switchMap(({ guid, token }) =>
+            .map(({ isSignUp, ...args }) => ({
+              ...args,
+              renderText: isSignUp ?
+                renderUserSignUpMail :
+                renderUserSignInMail,
+            }))
+            .switchMap(({ guid, token, renderText }) =>
               sendMail({
                 to: email,
                 subject: 'sign in',
-                text: renderUserSignInMail({
+                text: renderText({
                   token,
                   guid: guid,
                   url: app.get('url'),
