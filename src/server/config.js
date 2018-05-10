@@ -21,7 +21,7 @@ export const email: EmailConfig = {
   transport: {
     type: 'smtp',
     alias: 'gmail',
-    host: 'smpt.gmail.com',
+    host: 'smtp.gmail.com',
     port: 465,
     auth: {
       user: process.env.GMAIL_USER,
