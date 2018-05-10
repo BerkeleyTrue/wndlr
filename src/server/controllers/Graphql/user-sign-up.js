@@ -3,11 +3,11 @@
 import dedent from 'dedent';
 
 export default ({
-  email,
+  guid,
   token,
   url,
 }: {
-  email: string,
+  guid: string,
   token: string,
   url: string,
 }) => dedent`
@@ -17,7 +17,7 @@ We have created a new account for you.
 
 Here's your sign in link. It will instantly sign you into WNDLR.com - no password necessary:
 
-${url}/passwordless-auth/?email=${email}&token=${token}
+${url}/passwordless-auth?email=${guid}&token=${token}
 
   Note: this sign in link will expire after 15 minutes. If you need a new sign in link, go to ${url}/signin
 

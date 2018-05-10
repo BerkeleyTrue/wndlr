@@ -49,5 +49,6 @@ export const general = {
 
 general.url =
   general.protocol +
+  '://' +
   general.host +
   (general.proxyPort ? ':' + general.proxyPort : '');
