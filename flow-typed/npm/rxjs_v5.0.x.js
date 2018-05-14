@@ -614,6 +614,8 @@ declare class rxjs$Observable<+T> {
     thisArg: any
   ): [rxjs$Observable<T>, rxjs$Observable<T>];
 
+  pluck<T, R>(...properties: Array<string>): rxjs$OperatorFunction<T, R>;
+
   pipe(): rxjs$Observable<T>;
 
   pipe<A>(op1: rxjs$OperatorFunctionLast<T, A>): A;
