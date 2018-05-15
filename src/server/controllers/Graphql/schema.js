@@ -28,7 +28,7 @@ const getWaitTime = _.flow(
   _.method('minutes'),
 );
 
-const createWaitMessage = (timeTillAuthReset: string) => dedent`
+const createWaitMessage = (timeTillAuthReset: number) => dedent`
   Please wait at least ${timeTillAuthReset} minute${
   timeTillAuthReset > 1 ? 's' : ''
 } for the sign in email to arrive
@@ -144,10 +144,12 @@ export const makeResolvers = function(app: $Application) {
             Observable.forkJoin(
               authUtils.generateVerificationToken(),
               authUtils.createToken(ttl15Min),
-              (guid, token) => ({ guid, token }),
             ),
           )
-          .switchMap(({ guid, token: { ttl, created, token } }) =>
+          .switchMap(([
+            guid,
+            auth,
+          ]) =>
             ds
               .queryOne(
                 aql`
@@ -163,11 +165,7 @@ export const makeResolvers = function(app: $Application) {
                   // store new user
                   LET user = NEW
 
-                  INSERT {
-                    ttl: ${ttl},
-                    createdOn: ${created},
-                    token: ${token}
-                  } INTO userAuthentications
+                  INSERT ${auth} INTO userAuthentications
 
                   // store new doc
                   LET auth = NEW
@@ -179,24 +177,18 @@ export const makeResolvers = function(app: $Application) {
                   } INTO userToAuthentication
                 `,
               )
-              .mapTo({ token, guid, isSignUp: true }),
+              .mapTo({ token: auth.token, guid, isSignUp: true }),
           )
           .do(() => log('new user'));
 
         const createAuthForUser = userExistsHasNoAuth
           .switchMap(({ user }) =>
-            authUtils
-              .createToken(ttl15Min)
-              .switchMap(({ ttl, created, token }) =>
-                ds
-                  .queryOne(
-                    aql`
+            authUtils.createToken(ttl15Min).switchMap(auth =>
+              ds
+                .queryOne(
+                  aql`
                       // create authen
-                      INSERT {
-                        ttl: ${ttl},
-                        createdOn: ${created},
-                        token: ${token}
-                      } INTO userAuthentications
+                      INSERT ${auth} INTO userAuthentications
 
                       // store new doc
                       LET auth = NEW
@@ -207,9 +199,9 @@ export const makeResolvers = function(app: $Application) {
                         _to: auth._id
                       } INTO userToAuthentication
                     `,
-                  )
-                  .mapTo({ token, guid: user.guid, isSignUp: false }),
-              ),
+                )
+                .mapTo({ token: auth.token, guid: user.guid, isSignUp: false }),
+            ),
           )
           .do(() => log('user exists, has no auth'));
 
@@ -239,18 +231,12 @@ export const makeResolvers = function(app: $Application) {
                 `,
               )
               .switchMap(() =>
-                authUtils
-                  .createToken(ttl15Min)
-                  .switchMap(({ ttl, created, token }) =>
-                    ds
-                      .query(
-                        aql`
+                authUtils.createToken(ttl15Min).switchMap(auth =>
+                  ds
+                    .query(
+                      aql`
                           // create new authen
-                          INSERT {
-                            ttl: ${ttl},
-                            createdOn: ${created},
-                            token: ${token}
-                          } INTO userAuthentications
+                          INSERT ${auth} INTO userAuthentications
 
                           // store new doc
                           LET auth = NEW
@@ -261,9 +247,13 @@ export const makeResolvers = function(app: $Application) {
                             _to: auth._id
                           } INTO userToAuthentication
                         `,
-                      )
-                      .mapTo({ token, guid: user.guid, isSignUp: false }),
-                  ),
+                    )
+                    .mapTo({
+                      token: auth.token,
+                      guid: user.guid,
+                      isSignUp: false,
+                    }),
+                ),
               ),
           )
           .do(() => log('user exists, has old auth'));

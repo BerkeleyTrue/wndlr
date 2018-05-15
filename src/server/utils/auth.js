@@ -8,9 +8,9 @@ export const generateVerificationToken = Observable.bindNodeCallback(
 
 export const createToken = (
   ttl: number,
-): Observable<{ ttl: number, token: string, created: number }> =>
+): Observable<{ ttl: number, token: string, createdOn: number }> =>
   generateVerificationToken().map(token => ({
     token,
     ttl,
-    created: Date.now(),
+    createdOn: Date.now(),
   }));
