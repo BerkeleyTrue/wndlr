@@ -101,18 +101,22 @@ export const makeResolvers = function(app: $Application) {
         log('normalizedEmail: ', normalizedEmail);
         const queryUserNAuth = ds.queryOne(
           aql`
-              Let user = First(
-                For user In users
-                Filter user.normalizedEmail == ${normalizedEmail}
-                Limit 1
-                Return user
+              LET user = First(
+                FOR user IN users
+                  FILTER user.normalizedEmail == ${normalizedEmail}
+                  LIMIT 1
+                  RETURN user
               )
 
-              Let auth = !IS_NULL(user) ? First(
-                For auth In 1 OUTBOUND user._id userToAuthentication
-                Return auth
+              LET auth = !IS_NULL(user) ? FIRST(
+                FOR auth
+                  IN 1..1
+                  OUTBOUND user._id
+                  userToAuthentication
+                    RETURN auth
               ) : NULL
-              Return { user, auth }
+
+              RETURN { user, auth }
             `,
         );
 
@@ -148,26 +152,31 @@ export const makeResolvers = function(app: $Application) {
               .queryOne(
                 aql`
                   // create user and authen
-                  Insert {
+                  INSERT {
                     email: ${email},
                     normalizedEmail: ${normalizedEmail},
                     createdOn: ${Date.now()},
                     lastUpdatedOn: ${Date.now()},
                     guid: ${guid}
-                  } Into users
-                  Let user = NEW
-                  Insert {
+                  } INTO users
+
+                  // store new user
+                  LET user = NEW
+
+                  INSERT {
                     ttl: ${ttl},
                     createdOn: ${created},
                     token: ${token}
-                  } Into userAuthentications
+                  } INTO userAuthentications
+
                   // store new doc
-                  Let auth = NEW
+                  LET auth = NEW
+
                   // create edge to user
-                  Insert {
+                  INSERT {
                     _from: user._id,
                     _to: auth._id
-                  } Into userToAuthentication
+                  } INTO userToAuthentication
                 `,
               )
               .mapTo({ token, guid, isSignUp: true }),
@@ -183,18 +192,20 @@ export const makeResolvers = function(app: $Application) {
                   .queryOne(
                     aql`
                       // create authen
-                      Insert {
+                      INSERT {
                         ttl: ${ttl},
                         createdOn: ${created},
                         token: ${token}
-                      } Into userAuthentications
+                      } INTO userAuthentications
+
                       // store new doc
-                      Let auth = NEW
+                      LET auth = NEW
+
                       // create edge to user
-                      Insert {
+                      INSERT {
                         _from: ${user._id},
                         _to: auth._id
-                      } Into userToAuthentication
+                      } INTO userToAuthentication
                     `,
                   )
                   .mapTo({ token, guid: user.guid, isSignUp: false }),
@@ -215,6 +226,7 @@ export const makeResolvers = function(app: $Application) {
               .queryOne(
                 aql`
                   WITH userAuthentications, userToAuthentication
+
                   LET authEdges = (
                     FOR v, e
                       IN 1..1
@@ -222,6 +234,7 @@ export const makeResolvers = function(app: $Application) {
                       GRAPH 'userSignInAttempt'
                         REMOVE e IN userToAuthentication
                   )
+
                   REMOVE { "_key": ${auth._key} } IN userAuthentications
                 `,
               )
@@ -237,14 +250,16 @@ export const makeResolvers = function(app: $Application) {
                             ttl: ${ttl},
                             createdOn: ${created},
                             token: ${token}
-                          } Into userAuthentications
+                          } INTO userAuthentications
+
                           // store new doc
-                          Let auth = NEW
+                          LET auth = NEW
+
                           // create edge to user
-                          Insert {
+                          INSERT {
                             _from: ${user._id},
                             _to: auth._id
-                          } Into userToAuthentication
+                          } INTO userToAuthentication
                         `,
                       )
                       .mapTo({ token, guid: user.guid, isSignUp: false }),
