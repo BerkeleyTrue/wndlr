@@ -10,6 +10,7 @@ import { aql } from 'arangojs';
 
 import renderUserSignInMail from './user-sign-in.js';
 import renderUserSignUpMail from './user-sign-up.js';
+import { User } from './models';
 import { sendMail, authUtils } from '../../utils';
 import { dataSource as ds } from '../../data-source';
 
@@ -142,25 +143,19 @@ export const makeResolvers = function(app: $Application) {
         const createUserAndAuth = noUser
           .switchMap(() =>
             Observable.forkJoin(
-              authUtils.generateVerificationToken(),
+              User.createNewUser(email),
               authUtils.createToken(ttl15Min),
             ),
           )
           .switchMap(([
-            guid,
+            user,
             auth,
           ]) =>
             ds
               .queryOne(
                 aql`
                   // create user and authen
-                  INSERT {
-                    email: ${email},
-                    normalizedEmail: ${normalizedEmail},
-                    createdOn: ${Date.now()},
-                    lastUpdatedOn: ${Date.now()},
-                    guid: ${guid}
-                  } INTO users
+                  INSERT ${user} INTO users
 
                   // store new user
                   LET user = NEW
@@ -177,7 +172,7 @@ export const makeResolvers = function(app: $Application) {
                   } INTO userToAuthentication
                 `,
               )
-              .mapTo({ token: auth.token, guid, isSignUp: true }),
+              .mapTo({ token: auth.token, guid: user.guid, isSignUp: true }),
           )
           .do(() => log('new user'));
 
