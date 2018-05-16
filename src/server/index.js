@@ -9,7 +9,7 @@ import createDebugger from 'debug';
 import isDev from 'isdev';
 import bodyParser from 'body-parser';
 
-import { reactRouter, graphqlRouter } from './routers.js';
+import addRouters from './routers.js';
 import { general as config } from './config.js';
 
 const log = createDebugger(`${config.ns}:server`);
@@ -24,8 +24,7 @@ app.use(morgan('dev'));
 app.use(bodyParser.json());
 expressState.extend(app);
 
-graphqlRouter(app);
-reactRouter(app);
+addRouters(app);
 
 // server static files
 app.use(express.static('dist'));
