@@ -8,9 +8,9 @@ import { aql } from 'arangojs';
 
 import renderUserSignInMail from './user-sign-in.js';
 import renderUserSignUpMail from './user-sign-up.js';
-import { User, UserAuthentication as UserAuthen } from './models';
-import { sendMail } from '../../utils';
-import { dataSource as ds } from '../../data-source';
+import { User, UserAuthentication as UserAuthen } from '../Models';
+import { sendMail } from '../utils';
+import { dataSource as ds } from '../Data-Source';
 
 const log = createDebugger('wndlr:server:controllers:graphql');
 

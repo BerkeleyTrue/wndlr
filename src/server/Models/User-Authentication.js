@@ -3,7 +3,7 @@ import { type Observable } from 'rxjs';
 import _ from 'lodash/fp';
 import moment from 'moment';
 
-import { authUtils } from '../../../utils';
+import { authUtils } from '../utils';
 
 const ttl15Min = 15 * 60 * 1000;
 const authResetTime = 5;

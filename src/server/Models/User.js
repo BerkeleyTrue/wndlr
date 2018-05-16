@@ -2,7 +2,7 @@
 import { type Observable } from 'rxjs';
 import { normalizeEmail } from 'validator';
 
-import { authUtils } from '../../../utils';
+import { authUtils } from '../utils';
 
 export const gqlType = `
   """
