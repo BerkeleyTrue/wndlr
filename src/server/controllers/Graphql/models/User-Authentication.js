@@ -8,6 +8,18 @@ import { authUtils } from '../../../utils';
 const ttl15Min = 15 * 60 * 1000;
 const authResetTime = 5;
 
+export const gqlType = `
+  """
+  User Authentication Document:
+  Relates to a user who is attempting to sign in or sign up.
+  """
+  type AuthenToken {
+    token: String
+    ttl: Int
+    createdOn: Int
+  }
+`;
+
 export type AuthenToken = {
   ttl: number,
   token: string,

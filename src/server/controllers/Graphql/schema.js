@@ -22,40 +22,9 @@ const createWaitMessage = (timeTillAuthReset: number) => dedent`
 `;
 
 export const typeDefs = `
-  """
-  User Document:
-  """
-  type User {
-    """
-    Used to send emails
-    """
-    email: Email
+  ${User.gqlType}
 
-    """
-    Used to identify a user
-    """
-    normalizedEmail: NormalizedEmail
-
-    isEmailVerified: Boolean
-
-    """
-    Used to find a user from an unsubscribe link
-    """
-    guid: String
-
-    created: Int
-    lastUpdated: Int
-  }
-
-  """
-  Authentication Document:
-  Relates to a user who is attempting to sign in or sign up.
-  """
-  type UserSignIn {
-    token: String
-    ttl: Int
-    created: Int
-  }
+  ${UserAuthen.gqlType}
 
   type Info {
     message: String
