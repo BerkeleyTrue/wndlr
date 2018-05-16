@@ -1,7 +1,5 @@
 // @flow
 import type { $Application } from 'express';
-import _ from 'lodash/fp';
-import moment from 'moment';
 import createDebugger from 'debug';
 import dedent from 'dedent';
 import { Observable } from 'rxjs';
@@ -10,24 +8,11 @@ import { aql } from 'arangojs';
 
 import renderUserSignInMail from './user-sign-in.js';
 import renderUserSignUpMail from './user-sign-up.js';
-import { User } from './models';
-import { sendMail, authUtils } from '../../utils';
+import { User, UserAuthentication as UserAuthen } from './models';
+import { sendMail } from '../../utils';
 import { dataSource as ds } from '../../data-source';
 
-const ttl15Min = 15 * 60 * 1000;
-const authResetTime = 5;
 const log = createDebugger('wndlr:server:controllers:graphql');
-
-const timestampToMoment = _.flow(x => new Date(x), moment);
-const isAuthRecent = (createdOn: number) =>
-  timestampToMoment(createdOn).isAfter(moment().subtract(authResetTime, 'm'));
-
-const getWaitTime = _.flow(
-  timestampToMoment,
-  createdOn => createdOn.diff(moment().subtract(authResetTime, 'm')),
-  moment.duration,
-  _.method('minutes'),
-);
 
 const createWaitMessage = (timeTillAuthReset: number) => dedent`
   Please wait at least ${timeTillAuthReset} minute${
@@ -137,14 +122,14 @@ export const makeResolvers = function(app: $Application) {
           userExistsAndHasRecentAuth,
           userExistsHasOutdatedAuth,
         ] = userExistsHasOldAuth.partition(({ auth: { createdOn } }) =>
-          isAuthRecent(createdOn),
+          UserAuthen.isAuthRecent(createdOn),
         );
 
         const createUserAndAuth = noUser
           .switchMap(() =>
             Observable.forkJoin(
               User.createNewUser(email),
-              authUtils.createToken(ttl15Min),
+              UserAuthen.createToken(),
             ),
           )
           .switchMap(([
@@ -178,7 +163,7 @@ export const makeResolvers = function(app: $Application) {
 
         const createAuthForUser = userExistsHasNoAuth
           .switchMap(({ user }) =>
-            authUtils.createToken(ttl15Min).switchMap(auth =>
+            UserAuthen.createToken().switchMap(auth =>
               ds
                 .queryOne(
                   aql`
@@ -202,7 +187,7 @@ export const makeResolvers = function(app: $Application) {
 
         const sendWaitMessage = userExistsAndHasRecentAuth
           .pluck('auth', 'createdOn')
-          .map(getWaitTime)
+          .map(UserAuthen.getWaitTime)
           .map(createWaitMessage)
           .map(message => ({ message }))
           .do(() => log('user exists has recent auth'));
@@ -226,7 +211,7 @@ export const makeResolvers = function(app: $Application) {
                 `,
               )
               .switchMap(() =>
-                authUtils.createToken(ttl15Min).switchMap(auth =>
+                UserAuthen.createToken().switchMap(auth =>
                   ds
                     .query(
                       aql`
