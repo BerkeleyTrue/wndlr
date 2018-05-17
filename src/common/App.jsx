@@ -1,5 +1,5 @@
 // @flow
-import _ from 'lodash';
+import R from 'ramda';
 import React from 'react';
 import { hot } from 'react-hot-loader';
 import { connect } from 'react-redux';
@@ -40,7 +40,7 @@ export function App({ route }: Props) {
   );
 }
 
-export default _.flowRight(hot(module), connect(mapStateToProps))(App);
+export default R.compose(hot(module), connect(mapStateToProps))(App);
 
 App.displayName = 'App';
 App.propTypes = propTypes;

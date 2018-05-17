@@ -5,7 +5,7 @@ import type { Store, StoreEnhancer, Middleware, Reducer } from 'redux';
 import type { BrowserHistory, MemoryHistory } from 'history';
 import type { Location } from 'redux-first-router';
 
-import _ from 'lodash';
+import R from 'ramda';
 import React from 'react';
 import createDebugger from 'debug';
 import { createStore, compose, applyMiddleware } from 'redux';
@@ -28,13 +28,13 @@ type CreateAppReturn = {
 export default function createApp<
   E: StoreEnhancer<*, *>,
   M: Middleware<*, *>,
-  R: Reducer<*, *>,
+  Re: Reducer<*, *>,
 >({
   // Note: root key is used to force react to render
   // a new tree on subsequent render(appElement) calls.
   // This prevents the Provider warning about the store object changing
   defaultState,
-  enhancer: sideEnhancer = _.identity,
+  enhancer: sideEnhancer = R.identity,
   history,
   rootKey,
 }: {
@@ -50,7 +50,7 @@ export default function createApp<
   }: {
     enhancer: E,
     middleware: M,
-    reducer: R,
+    reducer: Re,
   } = connectRoutes(history, routesMap);
 
   addNS('location', routesReducer);

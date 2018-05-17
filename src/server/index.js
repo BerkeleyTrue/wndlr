@@ -1,7 +1,7 @@
 // @flow
 import 'dotenv/config';
 import 'source-map-support/register';
-import _ from 'lodash';
+import R from 'ramda';
 import express from 'express';
 import morgan from 'morgan';
 import expressState from 'express-state';
@@ -18,7 +18,7 @@ log.enabled = true;
 const app = express();
 
 // setttings
-_.forEach(config, (val, key) => app.set(key, val));
+R.forEach(args => app.set(...args), R.toPairs(config));
 
 app.use(morgan('dev'));
 app.use(bodyParser.json());
@@ -30,7 +30,7 @@ addRouters(app);
 app.use(express.static('dist'));
 
 // $FlowFixMe
-app.start = _.once(() => {
+app.start = R.once(() => {
   const server = app.listen(app.get('port'), () => {
     app.emit('started');
     log(`${app.get('dn')} server started`);

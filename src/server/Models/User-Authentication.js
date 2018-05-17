@@ -1,6 +1,6 @@
 // @flow
 import { type Observable } from 'rxjs';
-import _ from 'lodash/fp';
+import R from 'ramda';
 import moment from 'moment';
 
 import { authUtils } from '../utils';
@@ -29,11 +29,11 @@ export type AuthenToken = {
 export const isAuthRecent = (createdOn: number) =>
   moment(createdOn).isAfter(moment().subtract(authResetTime, 'm'));
 
-export const getWaitTime = _.flow(
+export const getWaitTime = R.pipe(
   moment,
   createdOn => createdOn.diff(moment().subtract(authResetTime, 'm')),
   moment.duration,
-  _.method('minutes'),
+  R.invoker(0, 'minutes'),
 );
 
 export const createToken = (): Observable<AuthenToken> =>

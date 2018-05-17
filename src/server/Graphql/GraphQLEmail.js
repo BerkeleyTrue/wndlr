@@ -1,4 +1,4 @@
-import _ from 'lodash';
+import R from 'ramda';
 import { GraphQLScalarType } from 'graphql';
 import { Kind } from 'graphql/language';
 import { GraphQLError } from 'graphql/error';
@@ -12,7 +12,7 @@ export const GraphQLEmail = new GraphQLScalarType({
       return null;
     }
     if (isEmail(value)) {
-      return _.toLower(value);
+      return R.toLower(value);
     }
     return null;
   },

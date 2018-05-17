@@ -11,7 +11,8 @@
     "class-property",
     "import",
     "jsx-a11y",
-    "react"
+    "react",
+    "ramda"
   ],
   "settings": {
     "import/ignore": [
@@ -30,6 +31,7 @@
   },
   "extends": [
     "plugin:flowtype/recommended",
+    "plugin:ramda/recommended",
     "plugin:jsx-a11y/recommended"
   ],
   "rules": {

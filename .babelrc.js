@@ -35,7 +35,13 @@ module.exports = function(context, options = {}) {
       ],
     ]),
     plugins: removeEmpty([
-      'lodash',
+      [
+        'lodash',
+        { id: [
+          'ramda',
+          'ramda-adjunct',
+        ] },
+      ],
       [
         'transform-runtime',
         {

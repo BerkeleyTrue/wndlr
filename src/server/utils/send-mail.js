@@ -1,13 +1,13 @@
 // @flow
-import _ from 'lodash';
+import R from 'ramda';
 import { Observable } from 'rxjs';
 import nodemailer, { type SendData, type SendInfo } from 'nodemailer';
 import { email as config } from '../config.js';
 
 function setupTransport(transportsByName, setting) {
   let transport;
-  const transportType = _.lowerCase(setting.type || 'stub');
-  const transportName = _.lowerCase(setting.alias || setting.type || 'strub');
+  const transportType = R.toLower(setting.type || 'stub');
+  const transportName = R.toLower(setting.alias || setting.type || 'strub');
   if (transportType === 'direct') {
     transport = nodemailer.createTransport();
   } else if (transportType === 'smpt') {
