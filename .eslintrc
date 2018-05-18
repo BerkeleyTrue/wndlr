@@ -1,9 +1,9 @@
 {
   "env": {
     "browser": true,
-    "mocha": true,
     "node": true,
-    "es6": true
+    "es6": true,
+    "jest/globals": true
   },
   "parser": "babel-eslint",
   "plugins": [
@@ -12,7 +12,8 @@
     "import",
     "jsx-a11y",
     "react",
-    "ramda"
+    "ramda",
+    "jest"
   ],
   "settings": {
     "import/ignore": [
@@ -32,6 +33,7 @@
   "extends": [
     "plugin:flowtype/recommended",
     "plugin:ramda/recommended",
+    "plugin:jest/recommended",
     "plugin:jsx-a11y/recommended"
   ],
   "rules": {

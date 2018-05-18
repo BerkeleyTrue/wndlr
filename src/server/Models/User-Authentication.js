@@ -5,8 +5,8 @@ import moment from 'moment';
 
 import { authUtils } from '../utils';
 
-const ttl15Min = 15 * 60 * 1000;
-const authResetTime = 5;
+export const ttl15Min = 15 * 60 * 1000;
+export const authResetTime = 5;
 
 export const gqlType = `
   """
@@ -26,12 +26,17 @@ export type AuthenToken = {
   createdOn: number,
 };
 
+const createResetMoment = R.nAry(0, R.pipe(
+  moment,
+  R.invoker(2, 'subtract')(authResetTime, 'm'),
+));
+
 export const isAuthRecent = (createdOn: number) =>
-  moment(createdOn).isAfter(moment().subtract(authResetTime, 'm'));
+  moment(createdOn).isAfter(createResetMoment());
 
 export const getWaitTime = R.pipe(
   moment,
-  createdOn => createdOn.diff(moment().subtract(authResetTime, 'm')),
+  createdOn => createdOn.diff(createResetMoment()),
   moment.duration,
   R.invoker(0, 'minutes'),
 );

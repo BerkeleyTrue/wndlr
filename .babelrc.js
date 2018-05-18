@@ -1,19 +1,20 @@
+const R = require('ramda');
 const { getIfUtils, removeEmpty } = require('webpack-config-utils');
 
 module.exports = function(context, options = {}) {
+  const env = {
+    development: process.env.NODE_ENV !== 'production',
+    client: process.env.BABEL_TARGET === 'client' || options.client,
+    test: process.env.NODE_ENV === 'test',
+  };
   const {
     ifClient,
     ifNotClient: ifNode,
     ifNotDevelopment: ifProd,
+    ifTest,
   } = getIfUtils(
-    {
-      development: process.env.NODE_ENV !== 'production',
-      client: process.env.BABEL_TARGET === 'client' || options.client,
-    },
-    [
-      'development',
-      'client',
-    ],
+    env,
+    R.keys(env),
   );
 
   return {
@@ -35,12 +36,15 @@ module.exports = function(context, options = {}) {
       ],
     ]),
     plugins: removeEmpty([
+      ifTest('istanbul'),
       [
         'lodash',
-        { id: [
-          'ramda',
-          'ramda-adjunct',
-        ] },
+        {
+          id: [
+            'ramda',
+            'ramda-adjunct',
+          ],
+        },
       ],
       [
         'transform-runtime',
