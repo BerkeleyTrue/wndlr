@@ -12,10 +12,7 @@ module.exports = function(context, options = {}) {
     ifNotClient: ifNode,
     ifNotDevelopment: ifProd,
     ifTest,
-  } = getIfUtils(
-    env,
-    R.keys(env),
-  );
+  } = getIfUtils(env, R.keys(env));
 
   return {
     presets: removeEmpty([

@@ -1,10 +1,11 @@
 // @flow
-import type { $Application } from 'express';
-import createDebugger from 'debug';
+import R from 'ramda';
 import dedent from 'dedent';
+import { aql } from 'arangojs';
+import createDebugger from 'debug';
 import { Observable } from 'rxjs';
 import { normalizeEmail } from 'validator';
-import { aql } from 'arangojs';
+import type { $Application } from 'express';
 
 import renderUserSignInMail from './user-sign-in.js';
 import renderUserSignUpMail from './user-sign-up.js';
@@ -90,8 +91,8 @@ export const makeResolvers = function(app: $Application) {
         const [
           userExistsAndHasRecentAuth,
           userExistsHasOutdatedAuth,
-        ] = userExistsHasOldAuth.partition(({ auth: { createdOn } }) =>
-          UserAuthen.isAuthRecent(createdOn),
+        ] = userExistsHasOldAuth.partition(
+          R.pipe(R.prop('auth'), UserAuthen.isAuthRecent),
         );
 
         const createUserAndAuth = noUser
@@ -155,7 +156,7 @@ export const makeResolvers = function(app: $Application) {
           .do(() => log('user exists, has no auth'));
 
         const sendWaitMessage = userExistsAndHasRecentAuth
-          .pluck('auth', 'createdOn')
+          .pluck('auth')
           .map(UserAuthen.getWaitTime)
           .map(createWaitMessage)
           .map(message => ({ message }))

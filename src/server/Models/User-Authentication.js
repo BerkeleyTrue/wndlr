@@ -26,15 +26,18 @@ export type AuthenToken = {
   createdOn: number,
 };
 
-const createResetMoment = R.nAry(0, R.pipe(
-  moment,
-  R.invoker(2, 'subtract')(authResetTime, 'm'),
-));
+const pluckCreatedOn = R.prop('createdOn');
+const createResetMoment = R.nAry(
+  0,
+  R.pipe(moment, R.invoker(2, 'subtract')(authResetTime, 'm')),
+);
 
-export const isAuthRecent = (createdOn: number) =>
-  moment(createdOn).isAfter(createResetMoment());
+export const isAuthRecent = R.pipe(pluckCreatedOn, moment, createdOnMoment =>
+  createdOnMoment.isAfter(createResetMoment()),
+);
 
 export const getWaitTime = R.pipe(
+  pluckCreatedOn,
   moment,
   createdOn => createdOn.diff(createResetMoment()),
   moment.duration,
