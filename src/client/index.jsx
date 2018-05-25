@@ -4,6 +4,7 @@ import createDebugger from 'debug';
 import createHistory from 'history/createBrowserHistory';
 import { Subject } from 'rxjs/Subject';
 import { BehaviorSubject } from 'rxjs/BehaviorSubject';
+import { withLatestFrom, switchMap, tap } from 'rxjs/operators';
 import type { StoreEnhancer as Enhancer } from 'redux';
 
 import render from './render.js';
@@ -37,34 +38,36 @@ const createApp$ = new Subject();
 const getState = new BehaviorSubject(() => SSRState);
 
 createApp$
-  .withLatestFrom(getState)
-  .switchMap(
-    ([
-      // this callback will be called when every a new createApp function
-      // is passed to the createApp$ stream
-      // This will then grab the latest getState function will allow us to
-      // access the latest state of the app
-      createApp,
-      getState,
-    ]) =>
-      // this creates the app and returns the app react element and redux store
-      createApp({
-        rootKey: createRootKey(),
-        history,
-        defaultState: getState(),
-        enhancer:
-          isDev && typeof devToolsExtension === 'function' ?
-            devToolsExtension() :
-            undefined,
-      }),
+  .pipe(
+    withLatestFrom(getState),
+    switchMap(
+      ([
+        // this callback will be called when every a new createApp function
+        // is passed to the createApp$ stream
+        // This will then grab the latest getState function will allow us to
+        // access the latest state of the app
+        createApp,
+        getState,
+      ]) =>
+        // this creates the app and returns the app element and redux store
+        createApp({
+          rootKey: createRootKey(),
+          history,
+          defaultState: getState(),
+          enhancer:
+            isDev && typeof devToolsExtension === 'function' ?
+              devToolsExtension() :
+              undefined,
+        }),
+    ),
+    // as a side effect, we pass the newest getState function into the
+    // behavior subject for later use during hot reload
+    tap(({ store }) => getState.next(store.getState)),
+    // we grab the app element created in createApp and render into the DOM
+    // this render function wraps ReactDOM.render in an observable function
+    // call
+    switchMap(({ appElement }) => render(appElement, DOMContainer)),
   )
-  // as a side effect, we pass the newest getState function into the
-  // behavior subject for later use during hot reload
-  .do(({ store }) => getState.next(store.getState))
-  // we grab the app element created in createApp and render into the DOM
-  // this render function wraps ReactDOM.render in an observable function
-  // call
-  .switchMap(({ appElement }) => render(appElement, DOMContainer))
   .subscribe(() => log('app mounted'));
 
 createApp$.next(createApp);

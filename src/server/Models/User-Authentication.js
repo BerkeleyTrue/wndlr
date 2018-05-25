@@ -1,5 +1,6 @@
 // @flow
 import { type Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
 import R from 'ramda';
 import moment from 'moment';
 
@@ -45,8 +46,10 @@ export const getWaitTime = R.pipe(
 );
 
 export const createToken = (): Observable<AuthenToken> =>
-  authUtils.generateVerificationToken().map(token => ({
-    token,
-    ttl: ttl15Min,
-    createdOn: Date.now(),
-  }));
+  authUtils.generateVerificationToken().pipe(
+    map(token => ({
+      token,
+      ttl: ttl15Min,
+      createdOn: Date.now(),
+    })),
+  );

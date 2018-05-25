@@ -1,7 +1,5 @@
 // @flow
 import uid from 'uid2';
-import { Observable } from 'rxjs';
+import { bindNodeCallback } from 'rxjs';
 
-export const generateVerificationToken = Observable.bindNodeCallback(
-  uid.bind(null, 64),
-);
+export const generateVerificationToken = bindNodeCallback(uid.bind(null, 64));
