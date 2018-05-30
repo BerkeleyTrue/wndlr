@@ -79,6 +79,8 @@ declare class rxjs$Observable<+T> {
     op5: rxjs$OperatorFunctionLast<D, E>
   ): E;
 
+  pipe<A>(...operations: rxjs$OperatorFunctionLast<T, A>[]): A;
+
   toArray(): rxjs$Observable<T[]>;
 
   toPromise(): Promise<T>;
@@ -397,55 +399,6 @@ type rxjs$forkJoin = {
     rxjs$ObservableInput<H>
   ]): rxjs$Observable<[A, B, C, D, E, F, G, H]>;
 
-  forkJoin<A>(
-    a: rxjs$ObservableInput<A>,
-  ): rxjs$Observable<A>;
-
-  forkJoin<A, B>(
-    a: rxjs$ObservableInput<A>,
-    b: rxjs$ObservableInput<B>
-  ): rxjs$Observable<[A, B]>;
-
-  forkJoin<A, B, C>(
-    a: rxjs$ObservableInput<A>,
-    b: rxjs$ObservableInput<B>,
-    c: rxjs$ObservableInput<C>
-  ): rxjs$Observable<[A, B, C]>;
-
-  forkJoin<A, B, C, D>(
-    a: rxjs$ObservableInput<A>,
-    b: rxjs$ObservableInput<B>,
-    c: rxjs$ObservableInput<C>,
-    d: rxjs$ObservableInput<D>
-  ): rxjs$Observable<[A, B, C, D]>;
-
-  forkJoin<A, B, C, D, E>(
-    a: rxjs$ObservableInput<A>,
-    b: rxjs$ObservableInput<B>,
-    c: rxjs$ObservableInput<C>,
-    d: rxjs$ObservableInput<D>,
-    e: rxjs$ObservableInput<E>
-  ): rxjs$Observable<[A, B, C, D]>;
-
-  forkJoin<A, B, C, D, E, F>(
-    a: rxjs$ObservableInput<A>,
-    b: rxjs$ObservableInput<B>,
-    c: rxjs$ObservableInput<C>,
-    d: rxjs$ObservableInput<D>,
-    e: rxjs$ObservableInput<E>,
-    f: rxjs$ObservableInput<F>
-  ): rxjs$Observable<[A, B, C, D, E, F]>;
-
-  forkJoin<A, B, C, D, E, F, G>(
-    a: rxjs$ObservableInput<A>,
-    b: rxjs$ObservableInput<B>,
-    c: rxjs$ObservableInput<C>,
-    d: rxjs$ObservableInput<D>,
-    e: rxjs$ObservableInput<E>,
-    f: rxjs$ObservableInput<F>,
-    g: rxjs$ObservableInput<G>
-  ): rxjs$Observable<[A, B, C, D, E, F, G]>;
-
   forkJoin<A, B, C, D, E, F, G, H>(
     rxjs$ObservableInput<A>,
     rxjs$ObservableInput<B>,
@@ -454,9 +407,66 @@ type rxjs$forkJoin = {
     rxjs$ObservableInput<E>,
     rxjs$ObservableInput<F>,
     rxjs$ObservableInput<G>,
-    rxjs$ObservableInput<H>
+    rxjs$ObservableInput<H>,
+    ...rest: Array<void>
   ): rxjs$Observable<[A, B, C, D, E, F, G, H]>;
 
+  forkJoin<A, B, C, D, E, F, G>(
+    a: rxjs$ObservableInput<A>,
+    b: rxjs$ObservableInput<B>,
+    c: rxjs$ObservableInput<C>,
+    d: rxjs$ObservableInput<D>,
+    e: rxjs$ObservableInput<E>,
+    f: rxjs$ObservableInput<F>,
+    g: rxjs$ObservableInput<G>,
+    ...rest: Array<void>
+  ): rxjs$Observable<[A, B, C, D, E, F, G]>;
+
+  forkJoin<A, B, C, D, E, F>(
+    a: rxjs$ObservableInput<A>,
+    b: rxjs$ObservableInput<B>,
+    c: rxjs$ObservableInput<C>,
+    d: rxjs$ObservableInput<D>,
+    e: rxjs$ObservableInput<E>,
+    f: rxjs$ObservableInput<F>,
+    ...rest: Array<void>
+  ): rxjs$Observable<[A, B, C, D, E, F]>;
+
+  forkJoin<A, B, C, D, E>(
+    a: rxjs$ObservableInput<A>,
+    b: rxjs$ObservableInput<B>,
+    c: rxjs$ObservableInput<C>,
+    d: rxjs$ObservableInput<D>,
+    e: rxjs$ObservableInput<E>,
+    ...rest: Array<void>
+  ): rxjs$Observable<[A, B, C, D]>;
+
+  forkJoin<A, B, C, D>(
+    a: rxjs$ObservableInput<A>,
+    b: rxjs$ObservableInput<B>,
+    c: rxjs$ObservableInput<C>,
+    d: rxjs$ObservableInput<D>,
+    ...rest: Array<void>
+  ): rxjs$Observable<[A, B, C, D]>;
+
+  forkJoin<A, B, C>(
+    a: rxjs$ObservableInput<A>,
+    b: rxjs$ObservableInput<B>,
+    c: rxjs$ObservableInput<C>
+  ): rxjs$Observable<[A, B, C]>;
+
+  forkJoin<A, B>(
+    a: rxjs$ObservableInput<A>,
+    b: rxjs$ObservableInput<B>
+  ): rxjs$Observable<[A, B]>;
+
+  forkJoin<A>(
+    a: rxjs$ObservableInput<A>
+  ): rxjs$Observable<A>;
+
+  forkJoin<A>(
+    ...rest: Array<rxjs$ObservableInput<A>>
+  ): rxjs$Observable<Array<A>>;
 }
 
 type rxjs$defer = {
