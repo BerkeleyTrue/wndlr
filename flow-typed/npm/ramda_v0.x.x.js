@@ -1,6 +1,3 @@
-// flow-typed signature: d3449f8ea25c35ca1946ee2466812df8
-// flow-typed version: 8817b601c3/ramda_v0.x.x/flow_>=v0.62.x
-
 /* eslint-disable no-unused-vars, no-redeclare */
 
 type Transformer<A, B> = {
@@ -1834,7 +1831,7 @@ declare module ramda {
 
   declare function identity<T>(x: T): T;
 
-  declare function invoker<A, B, C, D, O: { [k: string]: Function }>(
+  declare function invoker<A, B, C, D, O: { +[k: string]: Function }>(
     arity: number,
     name: $Enum<O>
   ): CurriedFunction2<A, O, D> &
