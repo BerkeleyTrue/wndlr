@@ -3,7 +3,8 @@ import R from 'ramda';
 import dedent from 'dedent';
 import { aql } from 'arangojs';
 import createDebugger from 'debug';
-import { Observable } from 'rxjs';
+import { forkJoin, merge } from 'rxjs';
+import { pluck, partition, tap, switchMap, map, mapTo } from 'rxjs/operators';
 import { normalizeEmail } from 'validator';
 import type { $Application } from 'express';
 
@@ -79,30 +80,29 @@ export const makeResolvers = function(app: $Application) {
         const [
           userExists,
           noUser,
-        ] = queryUserNAuth.partition(
-          ({ user }) => !!user,
-        );
+        ] = partition(
+          R.pipe(R.pluck('user'), Boolean),
+        )(queryUserNAuth);
 
         const [
           userExistsHasOldAuth,
           userExistsHasNoAuth,
-        ] = userExists.partition(({ auth }) => !!auth);
+        ] = partition(
+          R.pipe(R.pluck('auth'), Boolean),
+        )(userExists);
 
         const [
           userExistsAndHasRecentAuth,
           userExistsHasOutdatedAuth,
-        ] = userExistsHasOldAuth.partition(
-          R.pipe(R.prop('auth'), UserAuthen.isAuthRecent),
+        ] = partition(R.pipe(R.prop('auth'), UserAuthen.isAuthRecent))(
+          userExistsHasOldAuth,
         );
 
-        const createUserAndAuth = noUser
-          .switchMap(() =>
-            Observable.forkJoin(
-              User.createNewUser(email),
-              UserAuthen.createToken(),
-            ),
-          )
-          .switchMap(([
+        const createUserAndAuth = noUser.pipe(
+          switchMap(() =>
+            forkJoin(User.createNewUser(email), UserAuthen.createToken()),
+          ),
+          switchMap(([
             user,
             auth,
           ]) =>
@@ -127,16 +127,20 @@ export const makeResolvers = function(app: $Application) {
                   } INTO userToAuthentication
                 `,
               )
-              .mapTo({ token: auth.token, guid: user.guid, isSignUp: true }),
-          )
-          .do(() => log('new user'));
+              .pipe(
+                mapTo({ token: auth.token, guid: user.guid, isSignUp: true }),
+              ),
+          ),
+          tap(() => log('new user')),
+        );
 
-        const createAuthForUser = userExistsHasNoAuth
-          .switchMap(({ user }) =>
-            UserAuthen.createToken().switchMap(auth =>
-              ds
-                .queryOne(
-                  aql`
+        const createAuthForUser = userExistsHasNoAuth.pipe(
+          switchMap(({ user }) =>
+            UserAuthen.createToken().pipe(
+              switchMap(auth =>
+                ds
+                  .queryOne(
+                    aql`
                       // create authen
                       INSERT ${auth} INTO userAuthentications
 
@@ -149,21 +153,30 @@ export const makeResolvers = function(app: $Application) {
                         _to: auth._id
                       } INTO userToAuthentication
                     `,
-                )
-                .mapTo({ token: auth.token, guid: user.guid, isSignUp: false }),
+                  )
+                  .pipe(
+                    mapTo({
+                      token: auth.token,
+                      guid: user.guid,
+                      isSignUp: false,
+                    }),
+                  ),
+              ),
+              tap(() => log('user exists, has no auth')),
             ),
-          )
-          .do(() => log('user exists, has no auth'));
+          ),
+        );
 
-        const sendWaitMessage = userExistsAndHasRecentAuth
-          .pluck('auth')
-          .map(UserAuthen.getWaitTime)
-          .map(createWaitMessage)
-          .map(message => ({ message }))
-          .do(() => log('user exists has recent auth'));
+        const sendWaitMessage = userExistsAndHasRecentAuth.pipe(
+          pluck('auth'),
+          map(UserAuthen.getWaitTime),
+          map(createWaitMessage),
+          map(message => ({ message })),
+          tap(() => log('user exists has recent auth')),
+        );
 
-        const deleteAndCreateNewAuthForUser = userExistsHasOutdatedAuth
-          .switchMap(({ user, auth }) =>
+        const deleteAndCreateNewAuthForUser = userExistsHasOutdatedAuth.pipe(
+          switchMap(({ user, auth }) =>
             ds
               .queryOne(
                 aql`
@@ -180,12 +193,14 @@ export const makeResolvers = function(app: $Application) {
                   REMOVE { "_key": ${auth._key} } IN userAuthentications
                 `,
               )
-              .switchMap(() =>
-                UserAuthen.createToken().switchMap(auth =>
-                  ds
-                    .query(
-                      aql`
-                          // create new authen
+              .pipe(
+                switchMap(() =>
+                  UserAuthen.createToken().pipe(
+                    switchMap(auth =>
+                      ds
+                        .query(
+                          aql`
+                        // create new authen
                           INSERT ${auth} INTO userAuthentications
 
                           // store new doc
@@ -197,32 +212,34 @@ export const makeResolvers = function(app: $Application) {
                             _to: auth._id
                           } INTO userToAuthentication
                         `,
-                    )
-                    .mapTo({
-                      token: auth.token,
-                      guid: user.guid,
-                      isSignUp: false,
-                    }),
+                        )
+                        .pipe(
+                          mapTo({
+                            token: auth.token,
+                            guid: user.guid,
+                            isSignUp: false,
+                          }),
+                        ),
+                    ),
+                  ),
                 ),
               ),
-          )
-          .do(() => log('user exists, has old auth'));
+          ),
+          tap(() => log('user exists, has old auth')),
+        );
 
-        return Observable.merge(
+        return merge(
           sendWaitMessage,
-          Observable.merge(
+          merge(
             createUserAndAuth,
             createAuthForUser,
             deleteAndCreateNewAuthForUser,
-          )
-            .map(({ isSignUp, ...args }) => ({
-              ...args,
-              renderText: isSignUp ?
+          ).pipe(
+            switchMap(({ guid, token, isSignUp }) => {
+              const renderText = isSignUp ?
                 renderUserSignUpMail :
-                renderUserSignInMail,
-            }))
-            .switchMap(({ guid, token, renderText }) =>
-              sendMail({
+                renderUserSignInMail;
+              return sendMail({
                 to: email,
                 subject: 'sign in',
                 text: renderText({
@@ -230,17 +247,18 @@ export const makeResolvers = function(app: $Application) {
                   guid: guid,
                   url: app.get('url'),
                 }),
-              }),
-            )
-            .do(emailInfo => console.log('emailInfo: ', emailInfo))
+              });
+            }),
+            tap(emailInfo => console.log('emailInfo: ', emailInfo)),
             // sign in link sent
             // send message to client app
-            .map(() => ({
+            map(() => ({
               message: dedent`
-                We found your existing account.
+              We found your existing account.
                 Check your email and click the sign in link we sent you.
               `,
             })),
+          ),
         ).toPromise();
       },
     },

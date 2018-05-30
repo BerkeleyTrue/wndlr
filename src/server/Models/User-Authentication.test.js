@@ -1,11 +1,12 @@
 // @flow
 import R from 'ramda';
 import moment from 'moment';
+import { tap, map } from 'rxjs/operators';
 
 import * as UserAthen from './User-Authentication.js';
 
 const createAuthFromMoment = moment =>
-  UserAthen.createToken().map(R.assoc('createdOn', moment.valueOf()));
+  UserAthen.createToken().pipe(map(R.assoc('createdOn', moment.valueOf())));
 
 const now = R.nAry(0, moment);
 const createSubtractMinFrom = R.invoker(2, 'subtract')(R.__, 'm');
@@ -27,16 +28,20 @@ const createOldAuthFromReset = R.pipe(
 describe('isAuthRecent', () => {
   test('returns true with recent moment', () =>
     createOldAuthFromReset(-2)
-      .map(UserAthen.isAuthRecent)
-      .map(R.unary(expect))
-      .do(R.invoker(1, 'toBe')(true))
+      .pipe(
+        map(UserAthen.isAuthRecent),
+        map(R.unary(expect)),
+        tap(R.invoker(1, 'toBe')(true)),
+      )
       .toPromise());
 
   test('returns false with old moment', () =>
     createOldAuthFromReset(2)
-      .map(UserAthen.isAuthRecent)
-      .map(R.unary(expect))
-      .do(R.invoker(1, 'toBe')(false))
+      .pipe(
+        map(UserAthen.isAuthRecent),
+        map(R.unary(expect)),
+        tap(R.invoker(1, 'toBe')(false)),
+      )
       .toPromise());
 });
 
@@ -44,11 +49,13 @@ describe('getWaitTime', () => {
   test('returns minutes since moment', () => {
     const momentAgos = UserAthen.authResetTime - 2;
     return createOldAuth(momentAgos)
-      .map(UserAthen.getWaitTime)
-      .map(R.unary(expect))
-      .do(
-        R.invoker(1, 'toBeLessThanOrEqual')(
-          UserAthen.authResetTime - momentAgos,
+      .pipe(
+        map(UserAthen.getWaitTime),
+        map(R.unary(expect)),
+        tap(
+          R.invoker(1, 'toBeLessThanOrEqual')(
+            UserAthen.authResetTime - momentAgos,
+          ),
         ),
       )
       .toPromise();

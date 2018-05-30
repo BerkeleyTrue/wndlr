@@ -1,5 +1,5 @@
 // @flow
-import { Observable } from 'rxjs';
+import { defer, type Observable } from 'rxjs';
 import { Database } from 'arangojs';
 
 import { db as settings } from '../config.js';
@@ -24,7 +24,7 @@ db.useBasicAuth(settings.auth.user, settings.auth.password);
 
 export const dataSource: DataSource = {
   query(aqlQuery) {
-    return Observable.defer(() => db.query(aqlQuery));
+    return defer(() => db.query(aqlQuery));
   },
   queryOne(aqlQuery) {
     return this.query(aqlQuery).concatMap(cur => cur.next());

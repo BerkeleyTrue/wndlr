@@ -1,6 +1,6 @@
 // @flow
 import R from 'ramda';
-import { Observable } from 'rxjs';
+import { bindNodeCallback, type Observable } from 'rxjs';
 import nodemailer, { type SendData, type SendInfo } from 'nodemailer';
 import { email as config } from '../config.js';
 
@@ -26,7 +26,7 @@ function setupTransport(transportsByName, setting) {
     }
     transport = nodemailer.createTransport(transportModule(setting));
   }
-  const send = Observable.bindNodeCallback(transport.sendMail.bind(transport));
+  const send = bindNodeCallback(transport.sendMail.bind(transport));
   transportsByName[transportName] = send;
   if (!transportsByName['default']) {
     transportsByName['default'] = send;
