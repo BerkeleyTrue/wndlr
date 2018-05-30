@@ -100,10 +100,7 @@ export const makeResolvers = function(app: $Application) {
 
         const createUserAndAuth = noUser.pipe(
           switchMap(() =>
-            forkJoin(
-              User.createNewUser(email),
-              UserAuthen.createToken()
-            )
+            forkJoin(User.createNewUser(email), UserAuthen.createToken()),
           ),
           switchMap(([
             user,
@@ -238,14 +235,11 @@ export const makeResolvers = function(app: $Application) {
             createAuthForUser,
             deleteAndCreateNewAuthForUser,
           ).pipe(
-            map(({ isSignUp, ...args }) => ({
-              ...args,
-              renderText: isSignUp ?
+            switchMap(({ guid, token, isSignUp }) => {
+              const renderText = isSignUp ?
                 renderUserSignUpMail :
-                renderUserSignInMail,
-            })),
-            switchMap(({ guid, token, renderText }) =>
-              sendMail({
+                renderUserSignInMail;
+              return sendMail({
                 to: email,
                 subject: 'sign in',
                 text: renderText({
@@ -253,8 +247,8 @@ export const makeResolvers = function(app: $Application) {
                   guid: guid,
                   url: app.get('url'),
                 }),
-              }),
-            ),
+              });
+            }),
             tap(emailInfo => console.log('emailInfo: ', emailInfo)),
             // sign in link sent
             // send message to client app
