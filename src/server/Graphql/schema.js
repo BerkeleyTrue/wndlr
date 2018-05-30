@@ -80,17 +80,23 @@ export const makeResolvers = function(app: $Application) {
         const [
           userExists,
           noUser,
-        ] = partition(R.pipe(R.pluck('user'), Boolean))(queryUserNAuth);
+        ] = partition(
+          R.pipe(R.pluck('user'), Boolean),
+        )(queryUserNAuth);
 
         const [
           userExistsHasOldAuth,
           userExistsHasNoAuth,
-        ] = partition(R.pipe(R.pluck('auth'), Boolean))(userExists);
+        ] = partition(
+          R.pipe(R.pluck('auth'), Boolean),
+        )(userExists);
 
         const [
           userExistsAndHasRecentAuth,
           userExistsHasOutdatedAuth,
-        ] = partition(R.pipe(R.prop('auth'), UserAuthen.isAuthRecent))(userExistsHasOldAuth);
+        ] = partition(R.pipe(R.prop('auth'), UserAuthen.isAuthRecent))(
+          userExistsHasOldAuth,
+        );
 
         const createUserAndAuth = noUser.pipe(
           switchMap(() =>
