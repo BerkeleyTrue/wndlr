@@ -22,13 +22,6 @@ const info = {
 };
 
 function isGreenkeeperBranch() {
-  if (!info.correctBuild) {
-    console.log(
-      'This build should not update the lockfile. It could be a PR, not a branch build.',
-    );
-    return false;
-  }
-
   if (!info.branchName) {
     console.error(
       'No branch details set, so assuming not a Greenkeeper branch',
@@ -38,11 +31,6 @@ function isGreenkeeperBranch() {
 
   if (!info.branchName.startsWith('greenkeeper')) {
     console.log(`${info.branchName} is not a greenkeeper branch`);
-    return false;
-  }
-
-  if (!info.firstPush) {
-    console.error('Only running on first push of a new branch');
     return false;
   }
 
