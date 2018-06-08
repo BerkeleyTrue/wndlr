@@ -318,6 +318,9 @@ type rxjs$bindNodeCallback = {
   ): (...args: Array<any>) => rxjs$Observable<T>;
 }
 
+type rxjs$of = {
+  of<T>(...args: Array<T | rxjs$Scheduler>): rxjs$Observable<T>;
+}
 type rxjs$iif = {
   iif<T, T2>(
     condition: () => boolean | void,
@@ -807,9 +810,7 @@ declare module 'rxjs/observable/never' {
   }
 }
 declare module 'rxjs/observable/of' {
-  declare module.exports: {
-    of<+T>(...values: T[]): rxjs$Observable<T>;
-  }
+  declare module.exports: rxjs$of
 }
 declare module 'rxjs/observable/onErrorResumeNext' {
   declare module.exports: {
@@ -977,12 +978,14 @@ declare module 'rxjs' {
     TimeoutError: typeof rxjs$TimeoutError,
     UnsubscriptionError: typeof rxjs$UnsubscriptionError,
 
+    // observable creation methods
     bindNodeCallback: $PropertyType<rxjs$bindNodeCallback, 'bindNodeCallback'>,
     iif: $PropertyType<rxjs$iif, 'iif'>,
     empty: $PropertyType<rxjs$empty, 'empty'>,
     forkJoin: $PropertyType<rxjs$forkJoin, 'forkJoin'>,
     defer: $PropertyType<rxjs$defer, 'defer'>,
-    merge: $PropertyType<rxjs$merge, 'merge'>
+    merge: $PropertyType<rxjs$merge, 'merge'>,
+    of: $PropertyType<rxjs$of, 'of'>
   };
 }
 

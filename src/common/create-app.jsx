@@ -11,7 +11,7 @@ import createDebugger from 'debug';
 import { createStore, compose, applyMiddleware } from 'redux';
 import { Provider } from 'react-redux';
 import { selectLocationState, connectRoutes } from 'redux-first-router';
-import { of } from 'rxjs/observable/of';
+import { of } from 'rxjs';
 import { addNS } from 'redux-vertical';
 
 import App from './App.jsx';

@@ -2,7 +2,7 @@
 import type { $Application, NextFunction } from 'express';
 import createDebugger from 'debug';
 import { iif, empty } from 'rxjs';
-import { tap } from 'rxjs/operators';
+import { switchMap, tap } from 'rxjs/operators';
 import { renderToString } from 'react-dom/server';
 import createHistory from 'history/createMemoryHistory';
 import { NOT_FOUND } from 'redux-first-router';
@@ -31,42 +31,46 @@ export default function renderReact(app: $Application) {
     createApp({
       history: createHistory({ initialEntries: [ originalUrl ] }),
     })
-      .switchMap(
-        ({ store, appElement, location: { type, kind, pathname } }) => {
-          const ifNotRender = iif(
-            () => type === NOT_FOUND,
-            empty().pipe(
-              tap(undefined, undefined, () => {
-                log(`createApp tried to find ${originalUrl} but was not found`);
-                next();
-              }),
-            ),
-            empty().pipe(
-              tap(undefined, undefined, () => {
-                log(`createApp found a redirect to ${pathname}`);
-                res.redirect(pathname);
-              }),
-            ),
-          );
-          return iif(
-            () => type === NOT_FOUND || kind === 'redirect',
-            ifNotRender,
-            empty().pipe(
-              tap(undefined, undefined, () => {
-                log('rendering react page');
-                const state = store.getState();
-                // expose redux ssr state on window.__wndlr__.data
-                res.expose(state, ssrStateKey, { isJSON: true });
-                res.send(
-                  renderHtml({
-                    markup: renderToString(appElement),
-                    state: res.locals.state,
-                  }),
-                );
-              }),
-            ),
-          );
-        },
+      .pipe(
+        switchMap(
+          ({ store, appElement, location: { type, kind, pathname } }) => {
+            const ifNotRender = iif(
+              () => type === NOT_FOUND,
+              empty().pipe(
+                tap(undefined, undefined, () => {
+                  log(
+                    `createApp tried to find ${originalUrl} but was not found`,
+                  );
+                  next();
+                }),
+              ),
+              empty().pipe(
+                tap(undefined, undefined, () => {
+                  log(`createApp found a redirect to ${pathname}`);
+                  res.redirect(pathname);
+                }),
+              ),
+            );
+            return iif(
+              () => type === NOT_FOUND || kind === 'redirect',
+              ifNotRender,
+              empty().pipe(
+                tap(undefined, undefined, () => {
+                  log('rendering react page');
+                  const state = store.getState();
+                  // expose redux ssr state on window.__wndlr__.data
+                  res.expose(state, ssrStateKey, { isJSON: true });
+                  res.send(
+                    renderHtml({
+                      markup: renderToString(appElement),
+                      state: res.locals.state,
+                    }),
+                  );
+                }),
+              ),
+            );
+          },
+        ),
       )
       .subscribe(undefined, next);
   });

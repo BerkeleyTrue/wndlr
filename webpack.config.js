@@ -1,9 +1,22 @@
 const path = require('path');
+const R = require('ramda');
+const rxPaths = require('rxjs/_esm5/path-mapping');
 const webpack = require('webpack');
 const UglifyPlugin = require('uglifyjs-webpack-plugin');
 const { getIfUtils, removeEmpty } = require('webpack-config-utils');
 
 const clientEntry = { bundle: './src/client/index.jsx' };
+const rxPathsFixed = R.compose(
+  R.toPairs,
+  R.map(([
+    key,
+    val,
+  ]) => [
+    key + '$',
+    val,
+  ]),
+  R.fromPairs,
+)(rxPaths());
 
 module.exports = env => {
   const { ifProduction: ifProd, ifNotProduction: ifDev } = getIfUtils(env);
@@ -24,6 +37,9 @@ module.exports = env => {
       chunkFilename: ifDev('[name].js', '[name]-[chunkhash].js'),
       path: path.join(__dirname, '/dist/js'),
       publicPath: '/js',
+    },
+    resolve: {
+      alias: rxPathsFixed,
     },
     module: {
       rules: [
