@@ -3,6 +3,7 @@ const webpack = require('webpack');
 const nodeExternals = require('webpack-node-externals');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const { getIfUtils, removeEmpty } = require('webpack-config-utils');
+const DashboardPlugin = require('webpack-dashboard/plugin');
 
 module.exports = env => {
   const { ifProduction: ifProd, ifNotProduction: ifDev } = getIfUtils(env);
@@ -73,6 +74,7 @@ module.exports = env => {
     plugins: removeEmpty([
       new MiniCssExtractPlugin(),
       ifDev(new webpack.NoEmitOnErrorsPlugin()),
+      ifDev(new DashboardPlugin({ port: 3006 })),
     ]),
   };
 };

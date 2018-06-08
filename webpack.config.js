@@ -4,6 +4,7 @@ const rxPaths = require('rxjs/_esm5/path-mapping');
 const webpack = require('webpack');
 const UglifyPlugin = require('uglifyjs-webpack-plugin');
 const { getIfUtils, removeEmpty } = require('webpack-config-utils');
+const DashboardPlugin = require('webpack-dashboard/plugin');
 
 const clientEntry = { bundle: './src/client/index.jsx' };
 const rxPathsFixed = R.compose(
@@ -116,6 +117,7 @@ module.exports = env => {
       ),
       ifDev(new webpack.HotModuleReplacementPlugin()),
       ifDev(new webpack.NoEmitOnErrorsPlugin()),
+      ifDev(new DashboardPlugin({ port: 3005 })),
     ]),
   };
 };
