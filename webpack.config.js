@@ -20,7 +20,10 @@ const rxPathsFixed = R.compose(
 )(rxPaths());
 
 module.exports = env => {
-  const { ifProduction: ifProd, ifNotProduction: ifDev } = getIfUtils(env);
+  const { ifProduction: ifProd, ifNotProduction: ifDev } = getIfUtils(
+    env,
+    R.keys(env),
+  );
   return {
     mode: ifDev('development', 'production'),
     entry: ifDev(
@@ -49,6 +52,8 @@ module.exports = env => {
           include: [
             path.resolve(__dirname, 'src/client'),
             path.resolve(__dirname, 'src/common'),
+            path.resolve(__dirname, 'node_modules/rxjs'),
+            path.resolve(__dirname, 'node_modules/rxjs-compat'),
           ],
           loader: 'babel-loader',
           options: removeEmpty({
@@ -113,11 +118,20 @@ module.exports = env => {
           test: /\.js($|\?)/i,
           cache: true,
           sourceMap: true,
+          parallel: true,
+          uglifyOptions: {
+            ecma: 5,
+            mangle: true,
+            compress: {
+              passes: 3,
+              sequences: false,
+            },
+          },
         }),
       ),
       ifDev(new webpack.HotModuleReplacementPlugin()),
       ifDev(new webpack.NoEmitOnErrorsPlugin()),
-      ifDev(new DashboardPlugin({ port: 3005 })),
+      new DashboardPlugin({ port: 3005 }),
     ]),
   };
 };

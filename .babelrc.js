@@ -43,6 +43,29 @@ module.exports = function(context, options = {}) {
           ],
         },
       ],
+      ifClient([
+        'transform-imports',
+        {
+          'rxjs/operators': {
+            transform: 'rxjs/_esm5/internal/operators/${member}',
+            preventFullImport: true,
+          },
+          rxjs: {
+            transform(name) {
+              if (/(.*)Subject/.test(name)) {
+                return `rxjs/_esm5/internal/${name}`;
+              }
+              if (name === 'Observable') {
+                return 'rxjs/_esm5/internal/Observable';
+              }
+              if (name === 'of') {
+                return 'rxjs/_esm5/internal/observable/of';
+              }
+              return 'rxjs';
+            },
+          },
+        },
+      ]),
       [
         'transform-runtime',
         {

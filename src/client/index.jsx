@@ -2,7 +2,7 @@
 import isDev from 'isdev';
 import createDebugger from 'debug';
 import createHistory from 'history/createBrowserHistory';
-import { BehaviorSubject, Subject } from 'rxjs';
+import { Subject, BehaviorSubject } from 'rxjs';
 import { withLatestFrom, switchMap, tap } from 'rxjs/operators';
 import type { StoreEnhancer as Enhancer } from 'redux';
 

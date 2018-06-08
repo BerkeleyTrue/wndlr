@@ -1,17 +1,24 @@
 // @flow
-import type { Element } from 'react';
-import type { Observable } from 'rxjs';
-import type { Store, StoreEnhancer, Middleware, Reducer } from 'redux';
-import type { BrowserHistory, MemoryHistory } from 'history';
-import type { Location } from 'redux-first-router';
-
 import R from 'ramda';
-import React from 'react';
+import React, { type Element } from 'react';
 import createDebugger from 'debug';
-import { createStore, compose, applyMiddleware } from 'redux';
+import type { BrowserHistory, MemoryHistory } from 'history';
+import {
+  type Store,
+  type StoreEnhancer,
+  type Middleware,
+  type Reducer,
+  createStore,
+  compose,
+  applyMiddleware,
+} from 'redux';
 import { Provider } from 'react-redux';
-import { selectLocationState, connectRoutes } from 'redux-first-router';
-import { of } from 'rxjs';
+import {
+  type Location,
+  selectLocationState,
+  connectRoutes,
+} from 'redux-first-router';
+import { type Observable, of } from 'rxjs';
 import { addNS } from 'redux-vertical';
 
 import App from './App.jsx';

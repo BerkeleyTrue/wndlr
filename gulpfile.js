@@ -151,7 +151,10 @@ gulp.task(
     'watch:server',
   ],
   done => {
-    const webpackConfig = createWebpackClientConfig({ client: true });
+    const webpackConfig = createWebpackClientConfig({
+      production: false,
+      client: true,
+    });
     const compiler = webpack(webpackConfig);
     sync.init(
       {
