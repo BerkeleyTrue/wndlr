@@ -101,7 +101,7 @@
     "coveralls": "^3.0.0",
     "css-loader": "^0.28.11",
     "cz-conventional-changelog": "^2.1.0",
-    "eslint": "^4.5.0",
+    "eslint": "^5.0.0",
     "eslint-plugin-class-property": "^1.0.6",
     "eslint-plugin-flowtype": "^2.46.2",
     "eslint-plugin-import": "^2.7.0",
