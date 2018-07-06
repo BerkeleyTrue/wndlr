@@ -113,7 +113,7 @@
     "eslint-plugin-jsx-a11y": "^6.0.2",
     "eslint-plugin-ramda": "^2.5.1",
     "eslint-plugin-react": "git+https://github.com/berkeleytrue/eslint-plugin-react.git#feat/rwr",
-    "flow-bin": "^0.75.0",
+    "flow-bin": "^0.76.0",
     "flow-coverage-report": "^0.5.0",
     "gulp": "^3.9.1",
     "gulp-babel": "^7.0.1",
