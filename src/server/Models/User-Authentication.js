@@ -290,9 +290,9 @@ export const sendSignInEmail = (
       // send message to client app
       map(() => ({
         message: dedent`
-              We found your existing account.
-                Check your email and click the sign in link we sent you.
-              `,
+          We found your existing account.
+          Check your email and click the sign in link we sent you.
+        `,
       })),
     ),
   ).toPromise();
