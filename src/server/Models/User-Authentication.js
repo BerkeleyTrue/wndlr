@@ -9,9 +9,9 @@ import { normalizeEmail } from 'validator';
 import { pluck, partition, tap, switchMap, map, mapTo } from 'rxjs/operators';
 
 import * as User from './User.js';
-import { type DataSource } from '../Data-Source';
 import renderUserSignInMail from './user-sign-in.js';
 import renderUserSignUpMail from './user-sign-up.js';
+import { type DataSource } from '../Data-Source';
 import { typeof sendMail as SendMail, authUtils } from '../utils';
 
 
@@ -117,14 +117,14 @@ export const sendSignInEmail = (
     userExists,
     noUser,
   ] = partition(
-    R.pipe(R.pluck('user'), Boolean),
+    R.pipe(R.prop('user'), Boolean),
   )(queryUserNAuth);
 
   const [
     userExistsHasOldAuth,
     userExistsHasNoAuth,
   ] = partition(
-    R.pipe(R.pluck('auth'), Boolean),
+    R.pipe(R.prop('auth'), Boolean),
   )(userExists);
 
   const [
