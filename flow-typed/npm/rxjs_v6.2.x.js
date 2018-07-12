@@ -1086,19 +1086,9 @@ declare module "rxjs/operators" {
 
     concatAll<+T, U>(): rxjs$Observable<T> => rxjs$Observable<U>;
 
-    concatMap<+T, U>(
-      f: (value: T, index: number) => rxjs$ObservableInput<U>,
-      _: void
+    concatMap<T, U>(
+      f: (value: T, index: number) => rxjs$ObservableInput<U>
     ): rxjs$Observable<T> => rxjs$Observable<U>;
-    concatMap<+T, U, V>(
-      f: (value: T, index: number) => rxjs$ObservableInput<U>,
-      resultSelector: (
-        outerValue: T,
-        innerValue: U,
-        outerIndex: number,
-        innerIndex: number
-      ) => V
-    ): rxjs$Observable<T> => rxjs$Observable<V>;
 
     debounceTime<+T>(
       dueTime: number,
