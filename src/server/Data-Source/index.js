@@ -1,5 +1,6 @@
 // @flow
 import { defer, type Observable } from 'rxjs';
+import { concatMap } from 'rxjs/operators';
 import { Database } from 'arangojs';
 
 import { db as settings } from '../config.js';
@@ -27,6 +28,6 @@ export const dataSource: DataSource = {
     return defer(() => db.query(aqlQuery));
   },
   queryOne(aqlQuery) {
-    return this.query(aqlQuery).concatMap(cur => cur.next());
+    return this.query(aqlQuery).pipe(concatMap(cur => cur.next()));
   },
 };
