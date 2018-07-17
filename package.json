@@ -151,7 +151,7 @@
     "webpack-hot-middleware": "^2.21.2",
     "webpack-node-externals": "^1.7.2",
     "webpack-stats-plugin": "^0.2.1",
-    "webpack-stream": "^4.0.3"
+    "webpack-stream": "^5.0.0"
   },
   "repository": {
     "type": "git",
