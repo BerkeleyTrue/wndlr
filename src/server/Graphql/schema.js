@@ -3,8 +3,7 @@ import type { $Application } from 'express';
 
 import { User, UserAuthentication as UserAuthen } from '../Models';
 import { sendMail } from '../utils';
-import { dataSource as ds } from '../Data-Source';
-
+import { query, queryOne } from '../Data-Source';
 
 export const typeDefs = `
   ${User.gqlType}
@@ -26,7 +25,8 @@ export const makeResolvers = function(app: $Application) {
       sendSignInEmail: UserAuthen.sendSignInEmail(
         app.get('url'),
         sendMail,
-        ds
+        query,
+        queryOne,
       ),
     },
   };

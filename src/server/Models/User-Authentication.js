@@ -11,9 +11,11 @@ import { pluck, partition, tap, switchMap, map, mapTo } from 'rxjs/operators';
 import * as User from './User.js';
 import renderUserSignInMail from './user-sign-in.js';
 import renderUserSignUpMail from './user-sign-up.js';
-import { type DataSource } from '../Data-Source';
+import {
+  typeof queryOne as QueryOne,
+  typeof query as Query,
+} from '../Data-Source';
 import { typeof sendMail as SendMail, authUtils } from '../utils';
-
 
 const log = createDebugger('wndlr:server:Models:UserAuthentication');
 const createWaitMessage = (timeTillAuthReset: number) => dedent`
@@ -24,7 +26,6 @@ Please wait at least ${timeTillAuthReset} minute${
 `;
 export const ttl15Min = 15 * 60 * 1000;
 export const authResetTime = 5;
-
 
 export const gqlType = `
   """
@@ -71,79 +72,40 @@ export const createToken = (): Observable<AuthenToken> =>
     })),
   );
 
+export const internals = {
+  queryUserNAuth: (queryOne: QueryOne, email: string) =>
+    queryOne(
+      aql`
+        LET user = First(
+          FOR user IN users
+            FILTER user.normalizedEmail == ${email}
+            LIMIT 1
+            RETURN user
+        )
 
-// find user with normalized(email)
-// if no user, create one
-// if user has token and token ttl is live
-//   return wait message
-// else
-//   create token
-//     ttl (15 min)
-//     created: Date
-//     token: guid
-//   encode emailj
-//   send email
-//   return message
-export const sendSignInEmail = (
-  url: string,
-  sendMail: SendMail,
-  ds: DataSource,
-) => (root: any, { email }: { email: string }) => {
-  const normalizedEmail = normalizeEmail(email);
-  // check if the user already exists
-  log('normalizedEmail: ', normalizedEmail);
-  const queryUserNAuth = ds.queryOne(
-    aql`
-      LET user = First(
-        FOR user IN users
-          FILTER user.normalizedEmail == ${normalizedEmail}
-          LIMIT 1
-          RETURN user
-      )
+        LET auth = !IS_NULL(user) ? FIRST(
+          FOR auth
+            IN 1..1
+            OUTBOUND user._id
+            userToAuthentication
+              RETURN auth
+        ) : NULL
 
-      LET auth = !IS_NULL(user) ? FIRST(
-        FOR auth
-          IN 1..1
-          OUTBOUND user._id
-          userToAuthentication
-            RETURN auth
-      ) : NULL
-
-      RETURN { user, auth }
-    `,
-  );
-
-  const [
-    userExists,
-    noUser,
-  ] = partition(
-    R.pipe(R.prop('user'), Boolean),
-  )(queryUserNAuth);
-
-  const [
-    userExistsHasOldAuth,
-    userExistsHasNoAuth,
-  ] = partition(
-    R.pipe(R.prop('auth'), Boolean),
-  )(userExists);
-
-  const [
-    userExistsAndHasRecentAuth,
-    userExistsHasOutdatedAuth,
-  ] = partition(R.pipe(R.prop('auth'), isAuthRecent))(
-    userExistsHasOldAuth,
-  );
-
-  const createUserAndAuth = noUser.pipe(
-    switchMap(() =>
-      forkJoin(User.createNewUser(email), createToken()),
+        RETURN { user, auth }
+      `,
     ),
-    switchMap(([
-      user,
-      auth,
-    ]) =>
-      ds
-        .queryOne(
+  createUserAndAuth: (
+    queryOne: QueryOne,
+    email: string,
+    noUser: Observable<*>,
+  ) =>
+    noUser.pipe(
+      switchMap(() => forkJoin(User.createNewUser(email), createToken())),
+      switchMap(([
+        user,
+        auth,
+      ]) =>
+        queryOne(
           aql`
             // create user and authen
             INSERT ${user} INTO users
@@ -162,45 +124,152 @@ export const sendSignInEmail = (
               _to: auth._id
             } INTO userToAuthentication
           `,
-        )
-        .pipe(
-          mapTo({ token: auth.token, guid: user.guid, isSignUp: true }),
-        ),
+        ).pipe(mapTo({ token: auth.token, guid: user.guid, isSignUp: true })),
+      ),
+      tap(() => log('new user')),
     ),
-    tap(() => log('new user')),
-  );
-
-  const createAuthForUser = userExistsHasNoAuth.pipe(
-    switchMap(({ user }) =>
-      createToken().pipe(
-        switchMap(auth =>
-          ds
-            .queryOne(
+  createAuthForUser: (
+    queryOne: QueryOne,
+    userExistsHasNoAuth: Observable<*>,
+  ): Observable<*> =>
+    userExistsHasNoAuth.pipe(
+      switchMap(({ user }) =>
+        createToken().pipe(
+          switchMap(auth =>
+            queryOne(
               aql`
-                // create authen
-                INSERT ${auth} INTO userAuthentications
+              // create authen
+              INSERT ${auth} INTO userAuthentications
 
-                // store new doc
-                LET auth = NEW
+              // store new doc
+              LET auth = NEW
 
-                // create edge to user
-                INSERT {
-                  _from: ${user._id},
-                  _to: auth._id
-                } INTO userToAuthentication
-              `,
-            )
-            .pipe(
+              // create edge to user
+              INSERT {
+                _from: ${user._id},
+                _to: auth._id
+              } INTO userToAuthentication
+            `,
+            ).pipe(
               mapTo({
                 token: auth.token,
                 guid: user.guid,
                 isSignUp: false,
               }),
             ),
+          ),
+          tap(() => log('user exists, has no auth')),
         ),
-        tap(() => log('user exists, has no auth')),
       ),
     ),
+  deleteAndCreateNewAuthForUser: (
+    query: Query,
+    queryOne: QueryOne,
+    userExistsHasOutdatedAuth: Observable<*>,
+  ) =>
+    userExistsHasOutdatedAuth.pipe(
+      switchMap(({ user, auth }) =>
+        queryOne(
+          aql`
+          WITH userAuthentications, userToAuthentication
+
+          LET authEdges = (
+            FOR v, e
+              IN 1..1
+              INBOUND ${auth._id}
+              GRAPH 'userSignInAttempt'
+                REMOVE e IN userToAuthentication
+          )
+
+          REMOVE { "_key": ${auth._key} } IN userAuthentications
+        `,
+        ).pipe(
+          switchMap(() =>
+            createToken().pipe(
+              switchMap(auth =>
+                query(
+                  aql`
+                  // create new authen
+                  INSERT ${auth} INTO userAuthentications
+
+                  // store new doc
+                  LET auth = NEW
+
+                  // create edge to user
+                  INSERT {
+                    _from: ${user._id},
+                    _to: auth._id
+                  } INTO userToAuthentication
+                `,
+                ).pipe(
+                  mapTo({
+                    token: auth.token,
+                    guid: user.guid,
+                    isSignUp: false,
+                  }),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+      tap(() => log('user exists, has old auth')),
+    ),
+};
+
+// find user with normalized(email)
+// if no user, create one
+// if user has token and token ttl is live
+//   return wait message
+// else
+//   create token
+//     ttl (15 min)
+//     created: Date
+//     token: guid
+//   encode emailj
+//   send email
+//   return message
+export const sendSignInEmail = (
+  url: string,
+  sendMail: SendMail,
+  query: Query,
+  queryOne: QueryOne,
+) => (root: any, { email }: { email: string }) => {
+  const queryUserNAuth = R.pipe(
+    normalizeEmail,
+    R.curry(internals.queryUserNAuth)(queryOne)
+  )(email);
+
+  const [
+    userExists,
+    noUser,
+  ] = partition(R.pipe(R.prop('user'), Boolean))(
+    queryUserNAuth,
+  );
+
+  const [
+    userExistsHasOldAuth,
+    userExistsHasNoAuth,
+  ] = partition(
+    R.pipe(R.prop('auth'), Boolean),
+  )(userExists);
+
+  const [
+    userExistsAndHasRecentAuth,
+    userExistsHasOutdatedAuth,
+  ] = partition(
+    R.pipe(R.prop('auth'), isAuthRecent),
+  )(userExistsHasOldAuth);
+
+  const createUserAndAuth = internals.createUserAndAuth(
+    queryOne,
+    email,
+    noUser,
+  );
+
+  const createAuthForUser = internals.createAuthForUser(
+    queryOne,
+    userExistsHasNoAuth,
   );
 
   const sendWaitMessage = userExistsAndHasRecentAuth.pipe(
@@ -211,57 +280,10 @@ export const sendSignInEmail = (
     tap(() => log('user exists has recent auth')),
   );
 
-  const deleteAndCreateNewAuthForUser = userExistsHasOutdatedAuth.pipe(
-    switchMap(({ user, auth }) =>
-      ds
-        .queryOne(
-          aql`
-            WITH userAuthentications, userToAuthentication
-
-            LET authEdges = (
-              FOR v, e
-                IN 1..1
-                INBOUND ${auth._id}
-                GRAPH 'userSignInAttempt'
-                  REMOVE e IN userToAuthentication
-            )
-
-            REMOVE { "_key": ${auth._key} } IN userAuthentications
-          `,
-        )
-        .pipe(
-          switchMap(() =>
-            createToken().pipe(
-              switchMap(auth =>
-                ds
-                  .query(
-                    aql`
-                      // create new authen
-                        INSERT ${auth} INTO userAuthentications
-
-                        // store new doc
-                        LET auth = NEW
-
-                        // create edge to user
-                        INSERT {
-                          _from: ${user._id},
-                          _to: auth._id
-                        } INTO userToAuthentication
-                      `,
-                  )
-                  .pipe(
-                    mapTo({
-                      token: auth.token,
-                      guid: user.guid,
-                      isSignUp: false,
-                    }),
-                  ),
-              ),
-            ),
-          ),
-        ),
-    ),
-    tap(() => log('user exists, has old auth')),
+  const deleteAndCreateNewAuthForUser = internals.deleteAndCreateNewAuthForUser(
+    query,
+    queryOne,
+    userExistsHasOutdatedAuth,
   );
 
   return merge(
