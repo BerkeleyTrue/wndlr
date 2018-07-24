@@ -124,6 +124,7 @@ export const internals = {
               _to: auth._id
             } INTO userToAuthentication
           `,
+          // $FlowFixMe
         ).pipe(mapTo({ token: auth.token, guid: user.guid, isSignUp: true })),
       ),
       tap(() => log('new user')),
@@ -237,7 +238,7 @@ export const sendSignInEmail = (
 ) => (root: any, { email }: { email: string }) => {
   const queryUserNAuth = R.pipe(
     normalizeEmail,
-    R.curry(internals.queryUserNAuth)(queryOne)
+    R.curry(internals.queryUserNAuth)(queryOne),
   )(email);
 
   const [
