@@ -1,6 +1,8 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`sendSignInEmail internals createAuthForUser queries with old user 1`] = `
+exports[
+  `sendSignInEmail internals createAuthForUser queries with old user 1`
+] = `
 Object {
   "guid": "asdf",
   "isSignUp": false,
@@ -8,7 +10,9 @@ Object {
 }
 `;
 
-exports[`sendSignInEmail internals createAuthForUser queries with old user 2`] = `
+exports[
+  `sendSignInEmail internals createAuthForUser queries with old user 2`
+] = `
 Object {
   "createdOn": Any<Number>,
   "token": Any<String>,
@@ -16,7 +20,9 @@ Object {
 }
 `;
 
-exports[`sendSignInEmail internals createUserAndAuth queries using user and auth token 1`] = `
+exports[
+  `sendSignInEmail internals createUserAndAuth queries using user and auth token 1`
+] = `
 Object {
   "createdOn": Any<Number>,
   "email": "foo@dope.business",
@@ -27,7 +33,9 @@ Object {
 }
 `;
 
-exports[`sendSignInEmail internals createUserAndAuth queries using user and auth token 2`] = `
+exports[
+  `sendSignInEmail internals createUserAndAuth queries using user and auth token 2`
+] = `
 Object {
   "createdOn": Any<Number>,
   "token": Any<String>,
@@ -35,7 +43,9 @@ Object {
 }
 `;
 
-exports[`sendSignInEmail internals createUserAndAuth queries using user and auth token 3`] = `
+exports[
+  `sendSignInEmail internals createUserAndAuth queries using user and auth token 3`
+] = `
 "
             // create user and authen
             INSERT @value0 INTO users
@@ -56,7 +66,9 @@ exports[`sendSignInEmail internals createUserAndAuth queries using user and auth
           "
 `;
 
-exports[`sendSignInEmail internals createUserAndAuth queries using user and auth token 4`] = `
+exports[
+  `sendSignInEmail internals createUserAndAuth queries using user and auth token 4`
+] = `
 Object {
   "guid": Any<String>,
   "isSignUp": true,
@@ -64,7 +76,9 @@ Object {
 }
 `;
 
-exports[`sendSignInEmail internals destroyAndCreateAuthForUser queries with old auth 1`] = `
+exports[
+  `sendSignInEmail internals destroyAndCreateAuthForUser queries with old auth 1`
+] = `
 Object {
   "guid": "asdf",
   "isSignUp": false,
@@ -72,7 +86,9 @@ Object {
 }
 `;
 
-exports[`sendSignInEmail internals destroyAndCreateAuthForUser queries with old auth 2`] = `
+exports[
+  `sendSignInEmail internals destroyAndCreateAuthForUser queries with old auth 2`
+] = `
 Object {
   "bindVars": Object {
     "value0": 1234,
@@ -94,7 +110,9 @@ Object {
 }
 `;
 
-exports[`sendSignInEmail internals destroyAndCreateAuthForUser queries with old auth 3`] = `
+exports[
+  `sendSignInEmail internals destroyAndCreateAuthForUser queries with old auth 3`
+] = `
 Object {
   "value0": Object {
     "createdOn": Any<Number>,
@@ -104,7 +122,9 @@ Object {
 }
 `;
 
-exports[`sendSignInEmail internals destroyAndCreateAuthForUser queries with old auth 4`] = `
+exports[
+  `sendSignInEmail internals destroyAndCreateAuthForUser queries with old auth 4`
+] = `
 "
                   // create new authen
                   INSERT @value0 INTO userAuthentications

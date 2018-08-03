@@ -1,5 +1,4 @@
 const path = require('path');
-const R = require('ramda');
 const rxPaths = require('rxjs/_esm5/path-mapping');
 const webpack = require('webpack');
 const UglifyPlugin = require('uglifyjs-webpack-plugin');
@@ -7,22 +6,24 @@ const { getIfUtils, removeEmpty } = require('webpack-config-utils');
 const DashboardPlugin = require('webpack-dashboard/plugin');
 
 const clientEntry = { bundle: './src/client/index.jsx' };
-const rxPathsFixed = R.compose(
-  R.toPairs,
-  R.map(([
-    key,
-    val,
-  ]) => [
+const rxPathsObj = rxPaths();
+const rxPathsFixed = Object.keys(rxPathsObj)
+  .map(key => [
     key + '$',
-    val,
-  ]),
-  R.fromPairs,
-)(rxPaths());
+    rxPathsObj[key],
+  ])
+  .reduce((paths, [
+    key,
+    path,
+  ]) => {
+    paths[key] = path;
+    return paths;
+  }, {});
 
 module.exports = env => {
   const { ifProduction: ifProd, ifNotProduction: ifDev } = getIfUtils(
     env,
-    R.keys(env),
+    Object.keys(env),
   );
   return {
     mode: ifDev('development', 'production'),

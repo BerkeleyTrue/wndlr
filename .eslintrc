@@ -12,7 +12,6 @@
     "import",
     "jsx-a11y",
     "react",
-    "ramda",
     "jest"
   ],
   "settings": {
@@ -32,7 +31,6 @@
   },
   "extends": [
     "plugin:flowtype/recommended",
-    "plugin:ramda/recommended",
     "plugin:jest/recommended",
     "plugin:jsx-a11y/recommended"
   ],

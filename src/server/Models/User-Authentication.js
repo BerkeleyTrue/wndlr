@@ -1,5 +1,4 @@
 // @flow
-import R from 'ramda';
 import createDebugger from 'debug';
 import dedent from 'dedent';
 import moment from 'moment';
@@ -45,23 +44,16 @@ export type AuthenToken = {
   createdOn: number,
 };
 
-const pluckCreatedOn = R.prop('createdOn');
-const createResetMoment = R.nAry(
-  0,
-  R.pipe(moment, R.invoker(2, 'subtract')(authResetTime, 'm')),
-);
+const pluckCreatedOn = ({ createdOn }) => createdOn;
+const createResetMoment = () => moment().subtract(authResetTime, 'm');
 
-export const isAuthRecent = R.pipe(pluckCreatedOn, moment, createdOnMoment =>
-  createdOnMoment.isAfter(createResetMoment()),
-);
+export const isAuthRecent = (auth: AuthenToken): boolean =>
+  moment(pluckCreatedOn(auth)).isAfter(createResetMoment());
 
-export const getWaitTime = R.pipe(
-  pluckCreatedOn,
-  moment,
-  createdOn => createdOn.diff(createResetMoment()),
-  moment.duration,
-  R.invoker(0, 'minutes'),
-);
+export const getWaitTime = (auth: AuthenToken): number =>
+  moment
+    .duration(moment(pluckCreatedOn(auth)).diff(createResetMoment()))
+    .minutes();
 
 export const createToken = (): Observable<AuthenToken> =>
   authUtils.generateVerificationToken().pipe(
@@ -236,30 +228,28 @@ export const sendSignInEmail = (
   query: Query,
   queryOne: QueryOne,
 ) => (root: any, { email }: { email: string }) => {
-  const queryUserNAuth = R.pipe(
-    normalizeEmail,
-    R.curry(internals.queryUserNAuth)(queryOne),
-  )(email);
+  const queryUserNAuth = internals.queryUserNAuth(
+    queryOne,
+    normalizeEmail(email),
+  );
 
   const [
     userExists,
     noUser,
-  ] = partition(R.pipe(R.prop('user'), Boolean))(
-    queryUserNAuth,
-  );
+  ] = partition(({ user }) => !!user)(queryUserNAuth);
 
   const [
     userExistsHasOldAuth,
     userExistsHasNoAuth,
   ] = partition(
-    R.pipe(R.prop('auth'), Boolean),
+    ({ auth }) => !!auth,
   )(userExists);
 
   const [
     userExistsAndHasRecentAuth,
     userExistsHasOutdatedAuth,
   ] = partition(
-    R.pipe(R.prop('auth'), isAuthRecent),
+    ({ auth }) => isAuthRecent(auth),
   )(userExistsHasOldAuth);
 
   const createUserAndAuth = internals.createUserAndAuth(

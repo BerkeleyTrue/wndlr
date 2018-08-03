@@ -1,13 +1,16 @@
 // @flow
-import R from 'ramda';
 import { bindNodeCallback, type Observable } from 'rxjs';
 import nodemailer, { type SendData, type SendInfo } from 'nodemailer';
 import { email as config } from '../config.js';
 
 function setupTransport(transportsByName, setting) {
   let transport;
-  const transportType = R.toLower(setting.type || 'stub');
-  const transportName = R.toLower(setting.alias || setting.type || 'strub');
+  const transportType = (setting.type || 'stub').toLowerCase();
+  const transportName = (
+    setting.alias ||
+    setting.type ||
+    'strub'
+  ).toLowerCase();
   if (transportType === 'direct') {
     transport = nodemailer.createTransport();
   } else if (transportType === 'smpt') {

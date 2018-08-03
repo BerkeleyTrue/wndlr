@@ -1,38 +1,29 @@
 // @flow
-import R from 'ramda';
 import moment from 'moment';
 import { of } from 'rxjs';
 import * as OP from 'rxjs/operators';
 
 import * as UserAthen from './User-Authentication.js';
 
-const createAuthFromMoment = moment =>
-  UserAthen.createToken().pipe(OP.map(R.assoc('createdOn', moment.valueOf())));
+const createOldAuth = (timeAgo: number) =>
+  UserAthen.createToken().pipe(
+    OP.map(authToken => {
+      authToken.createdOn = moment()
+        .subtract(timeAgo, 'm')
+        .valueOf();
+      return authToken;
+    }),
+  );
 
-const now = R.nAry(0, moment);
-const createSubtractMinFrom = R.invoker(2, 'subtract')(R.__, 'm');
-// $FlowFixMe: flow has issues with curried functions that use a placeholder
-const createSubtractMinFromMoment = R.pipe(now, R.flip(createSubtractMinFrom));
-
-const createOldMoment = R.converge(R.call, [
-  createSubtractMinFromMoment,
-  R.identity,
-]);
-
-const createOldAuth = R.pipe(createOldMoment, createAuthFromMoment);
-
-const createOldAuthFromReset = R.pipe(
-  R.add(UserAthen.authResetTime),
-  createOldAuth,
-);
+const createOldAuthFromReset = (addThis: number) =>
+  createOldAuth(UserAthen.authResetTime + addThis);
 
 describe('isAuthRecent', () => {
   test('returns true with recent moment', () =>
     createOldAuthFromReset(-2)
       .pipe(
         OP.map(UserAthen.isAuthRecent),
-        OP.map(R.unary(expect)),
-        OP.tap(R.invoker(1, 'toBe')(true)),
+        OP.tap((isAuthRecent: boolean) => expect(isAuthRecent).toBe(true)),
       )
       .toPromise());
 
@@ -40,8 +31,7 @@ describe('isAuthRecent', () => {
     createOldAuthFromReset(2)
       .pipe(
         OP.map(UserAthen.isAuthRecent),
-        OP.map(R.unary(expect)),
-        OP.tap(R.invoker(1, 'toBe')(false)),
+        OP.tap((isAuthRecent: boolean) => expect(isAuthRecent).toBe(true)),
       )
       .toPromise());
 });
@@ -52,9 +42,8 @@ describe('getWaitTime', () => {
     return createOldAuth(momentAgos)
       .pipe(
         OP.map(UserAthen.getWaitTime),
-        OP.map(R.unary(expect)),
-        OP.tap(
-          R.invoker(1, 'toBeLessThanOrEqual')(
+        OP.tap((waitTime: number) =>
+          expect(waitTime).toBeLessThanOrEqual(
             UserAthen.authResetTime - momentAgos,
           ),
         ),

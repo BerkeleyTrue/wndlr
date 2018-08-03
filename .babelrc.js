@@ -1,4 +1,3 @@
-const R = require('ramda');
 const { getIfUtils, removeEmpty } = require('webpack-config-utils');
 
 module.exports = function(context, options = {}) {
@@ -12,7 +11,7 @@ module.exports = function(context, options = {}) {
     ifNotClient: ifNode,
     ifNotDevelopment: ifProd,
     ifTest,
-  } = getIfUtils(env, R.keys(env));
+  } = getIfUtils(env, Object.keys(env));
 
   return {
     presets: removeEmpty([
@@ -34,15 +33,6 @@ module.exports = function(context, options = {}) {
     ]),
     plugins: removeEmpty([
       ifTest('istanbul'),
-      [
-        'lodash',
-        {
-          id: [
-            'ramda',
-            'ramda-adjunct',
-          ],
-        },
-      ],
       ifClient([
         'transform-imports',
         {

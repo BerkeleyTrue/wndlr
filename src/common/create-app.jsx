@@ -1,5 +1,4 @@
 // @flow
-import R from 'ramda';
 import React, { type Element } from 'react';
 import createDebugger from 'debug';
 import type { BrowserHistory, MemoryHistory } from 'history';
@@ -41,7 +40,7 @@ export default function createApp<
   // a new tree on subsequent render(appElement) calls.
   // This prevents the Provider warning about the store object changing
   defaultState,
-  enhancer: sideEnhancer = R.identity,
+  enhancer: sideEnhancer = x => x,
   history,
   rootKey,
 }: {

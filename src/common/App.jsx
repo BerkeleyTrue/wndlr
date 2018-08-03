@@ -1,6 +1,6 @@
 // @flow
-import R from 'ramda';
 import React from 'react';
+import { compose } from 'redux';
 import { hot } from 'react-hot-loader';
 import { connect } from 'react-redux';
 import classnames from 'classnames/bind';
@@ -40,7 +40,7 @@ export function App({ route }: Props) {
   );
 }
 
-export default R.compose(hot(module), connect(mapStateToProps))(App);
+export default compose(hot(module), connect(mapStateToProps))(App);
 
 App.displayName = 'App';
 App.propTypes = propTypes;
