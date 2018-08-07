@@ -136,7 +136,7 @@
     "react-hot-loader": "^4.0.1",
     "require-watch": "^2.0.1",
     "sinon": "^6.0.0",
-    "style-loader": "^0.21.0",
+    "style-loader": "^0.22.0",
     "uglifyjs-webpack-plugin": "^1.2.4",
     "validate-commit-msg": "^2.14.0",
     "webpack": "^4.5.0",
