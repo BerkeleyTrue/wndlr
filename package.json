@@ -85,7 +85,7 @@
     "autoprefixer": "^8.2.0",
     "babel": "^6.5.2",
     "babel-cli": "^6.14.0",
-    "babel-eslint": "^8.0.0",
+    "babel-eslint": "^9.0.0",
     "babel-jest": "^22.4.3",
     "babel-loader": "^7.1.4",
     "babel-plugin-dev-expression": "^0.2.1",
