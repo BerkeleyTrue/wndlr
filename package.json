@@ -55,7 +55,7 @@
     "dotenv": "^6.0.0",
     "express": "^4.16.3",
     "express-state": "^1.4.0",
-    "graphql": "^0.13.2",
+    "graphql": "^14.0.0",
     "graphql-tools": "^3.0.0",
     "history": "^4.7.2",
     "invariant": "^2.2.1",
