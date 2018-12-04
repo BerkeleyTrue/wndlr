@@ -71,7 +71,7 @@
     "react-redux-form": "^1.16.8",
     "redux": "^4.0.0",
     "redux-first-router": "^1.9.19",
-    "redux-first-router-link": "^1.4.2",
+    "redux-first-router-link": "^2.0.0",
     "redux-observable": "^0.19.0",
     "redux-vertical": "^1.1.2",
     "rxjs": "^6.2.0",
