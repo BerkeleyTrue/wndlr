@@ -67,7 +67,7 @@
     "nodemailer-smtp-transport": "^2.7.4",
     "react": "^16.3.1",
     "react-dom": "^16.3.1",
-    "react-redux": "^5.0.7",
+    "react-redux": "^6.0.0",
     "react-redux-form": "^1.16.8",
     "redux": "^4.0.0",
     "redux-first-router": "^1.9.19",
