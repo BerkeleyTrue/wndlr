@@ -63,7 +63,7 @@
     "lodash": "^4.17.5",
     "moment": "^2.22.1",
     "morgan": "^1.9.0",
-    "nodemailer": "^4.6.4",
+    "nodemailer": "^5.0.0",
     "nodemailer-smtp-transport": "^2.7.4",
     "react": "^16.3.1",
     "react-dom": "^16.3.1",
