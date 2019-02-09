@@ -1,5 +1,3 @@
-// @flow
-import type { TransportSettings } from 'nodemailer';
 import isDev from 'isdev';
 
 export const db = {
@@ -11,12 +9,7 @@ export const db = {
   },
 };
 
-type EmailConfig = {
-  defaultSender: string,
-  transport: TransportSettings,
-  transports?: TransportSettings[],
-};
-export const email: EmailConfig = {
+export const email = {
   defaultSender: process.env.EMAIL_SENDER || '',
   transport: {
     type: 'smtp',

@@ -1,4 +1,3 @@
-// @flow
 import React from 'react';
 import classnames from 'classnames/bind';
 import { Control, Errors } from 'react-redux-form';
@@ -7,26 +6,14 @@ import styles from './input.sss';
 
 const cx = classnames.bind(styles);
 
-type Props = {
-  messages?: any,
-  type: string,
-  model: string,
-  label: string,
-};
-
-type ControlProps = {
-  model: string,
-  type?: string,
-};
-
 export default function Input({
   messages,
   model,
   label,
   type,
   ...rest
-}: Props) {
-  const controlProps: ControlProps = { model, ...rest };
+}) {
+  const controlProps = { model, ...rest };
   let Comp = Control[type];
   if (!Comp) {
     controlProps.type = type;

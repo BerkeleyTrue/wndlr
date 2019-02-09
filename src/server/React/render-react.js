@@ -1,5 +1,3 @@
-// @flow
-import type { $Application, NextFunction } from 'express';
 import createDebugger from 'debug';
 import { iif, empty } from 'rxjs';
 import { switchMap, tap } from 'rxjs/operators';
@@ -24,8 +22,8 @@ const renderHtml = ({ markup, state }) => `
 </html>
 `;
 
-export default function renderReact(app: $Application) {
-  app.get('*', (req, res, next: NextFunction) => {
+export default function renderReact(app) {
+  app.get('*', (req, res, next) => {
     const { createApp, ssrStateKey } = require('../common-to-server.js');
     const { originalUrl } = req;
     createApp({

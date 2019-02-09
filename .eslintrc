@@ -7,7 +7,6 @@
   },
   "parser": "babel-eslint",
   "plugins": [
-    "flowtype",
     "class-property",
     "import",
     "jsx-a11y",
@@ -30,7 +29,6 @@
     "ga": true
   },
   "extends": [
-    "plugin:flowtype/recommended",
     "plugin:jest/recommended",
     "plugin:jsx-a11y/recommended"
   ],

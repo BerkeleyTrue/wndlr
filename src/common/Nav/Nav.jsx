@@ -1,4 +1,3 @@
-// @flow
 import React from 'react';
 import classnames from 'classnames/bind';
 import Link from 'redux-first-router-link';

@@ -1,4 +1,3 @@
-// @flow
 import uid from 'uid2';
 import { bindNodeCallback } from 'rxjs';
 

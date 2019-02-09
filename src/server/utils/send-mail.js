@@ -1,6 +1,5 @@
-// @flow
-import { bindNodeCallback, type Observable } from 'rxjs';
-import nodemailer, { type SendData, type SendInfo } from 'nodemailer';
+import { bindNodeCallback } from 'rxjs';
+import nodemailer from 'nodemailer';
 import { email as config } from '../config.js';
 
 function setupTransport(transportsByName, setting) {
@@ -19,7 +18,6 @@ function setupTransport(transportsByName, setting) {
     const transportModuleName = `nodemailer-${transportType}-transport`;
     let transportModule;
     try {
-      // $FlowFixMe
       transportModule = require(transportModuleName);
     } catch (e) {
       console.log(
@@ -52,16 +50,10 @@ const transportsByName = transports.reduce(
   {},
 );
 
-type SendMailData = {
-  ...$Rest<$Exact<SendData>, { from: string }>,
-  from?: string,
-  transport?: string,
-};
-
 export function sendMail({
   transport: transportName = 'default',
   ...args
-}: SendMailData): Observable<SendInfo> {
+}) {
   const send = transportsByName[transportName || 'default'];
   if (!send) {
     throw new Error('No email transport set');
