@@ -1,6 +1,3 @@
-// @flow
-import type { $Application } from 'express';
-
 import { User, UserAuthentication as UserAuthen } from '../Models';
 import { sendMail } from '../utils';
 import { query, queryOne } from '../Data-Source';
@@ -19,7 +16,7 @@ export const typeDefs = `
   }
 `;
 
-export const makeResolvers = function(app: $Application) {
+export const makeResolvers = function(app) {
   return {
     Mutation: {
       sendSignInEmail: UserAuthen.sendSignInEmail(

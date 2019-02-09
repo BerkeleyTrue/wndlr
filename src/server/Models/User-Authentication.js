@@ -1,23 +1,18 @@
-// @flow
 import createDebugger from 'debug';
 import dedent from 'dedent';
 import moment from 'moment';
 import { aql } from 'arangojs';
-import { forkJoin, merge, type Observable } from 'rxjs';
+import { forkJoin, merge } from 'rxjs';
 import { normalizeEmail } from 'validator';
 import { pluck, partition, tap, switchMap, map, mapTo } from 'rxjs/operators';
 
 import * as User from './User.js';
 import renderUserSignInMail from './user-sign-in.js';
 import renderUserSignUpMail from './user-sign-up.js';
-import {
-  typeof queryOne as QueryOne,
-  typeof query as Query,
-} from '../Data-Source';
-import { typeof sendMail as SendMail, authUtils } from '../utils';
+import { authUtils } from '../utils';
 
 const log = createDebugger('wndlr:server:Models:UserAuthentication');
-const createWaitMessage = (timeTillAuthReset: number) => dedent`
+const createWaitMessage = (timeTillAuthReset) => dedent`
 Please wait at least ${timeTillAuthReset} minute${
   timeTillAuthReset > 1 ? 's' : ''
 } for the sign in email to arrive
@@ -38,24 +33,18 @@ export const gqlType = `
   }
 `;
 
-export type AuthenToken = {
-  ttl: number,
-  token: string,
-  createdOn: number,
-};
-
 const pluckCreatedOn = ({ createdOn }) => createdOn;
 const createResetMoment = () => moment().subtract(authResetTime, 'm');
 
-export const isAuthRecent = (auth: AuthenToken): boolean =>
+export const isAuthRecent = (auth) =>
   moment(pluckCreatedOn(auth)).isAfter(createResetMoment());
 
-export const getWaitTime = (auth: AuthenToken): number =>
+export const getWaitTime = (auth) =>
   moment
     .duration(moment(pluckCreatedOn(auth)).diff(createResetMoment()))
     .minutes();
 
-export const createToken = (): Observable<AuthenToken> =>
+export const createToken = () =>
   authUtils.generateVerificationToken().pipe(
     map(token => ({
       token,
@@ -65,7 +54,7 @@ export const createToken = (): Observable<AuthenToken> =>
   );
 
 export const internals = {
-  queryUserNAuth: (queryOne: QueryOne, email: string) =>
+  queryUserNAuth: (queryOne, email) =>
     queryOne(
       aql`
         LET user = First(
@@ -87,9 +76,9 @@ export const internals = {
       `,
     ),
   createUserAndAuth: (
-    queryOne: QueryOne,
-    email: string,
-    noUser: Observable<*>,
+    queryOne,
+    email,
+    noUser,
   ) =>
     noUser.pipe(
       switchMap(() => forkJoin(User.createNewUser(email), createToken())),
@@ -122,9 +111,9 @@ export const internals = {
       tap(() => log('new user')),
     ),
   createAuthForUser: (
-    queryOne: QueryOne,
-    userExistsHasNoAuth: Observable<*>,
-  ): Observable<*> =>
+    queryOne,
+    userExistsHasNoAuth,
+  ) =>
     userExistsHasNoAuth.pipe(
       switchMap(({ user }) =>
         createToken().pipe(
@@ -156,9 +145,9 @@ export const internals = {
       ),
     ),
   deleteAndCreateNewAuthForUser: (
-    query: Query,
-    queryOne: QueryOne,
-    userExistsHasOutdatedAuth: Observable<*>,
+    query,
+    queryOne,
+    userExistsHasOutdatedAuth,
   ) =>
     userExistsHasOutdatedAuth.pipe(
       switchMap(({ user, auth }) =>
@@ -223,11 +212,11 @@ export const internals = {
 //   send email
 //   return message
 export const sendSignInEmail = (
-  url: string,
-  sendMail: SendMail,
-  query: Query,
-  queryOne: QueryOne,
-) => (root: any, { email }: { email: string }) => {
+  url,
+  sendMail,
+  query,
+  queryOne,
+) => (root, { email }) => {
   const queryUserNAuth = internals.queryUserNAuth(
     queryOne,
     normalizeEmail(email),

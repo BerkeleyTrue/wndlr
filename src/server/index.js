@@ -1,4 +1,3 @@
-// @flow
 import 'dotenv/config';
 import 'source-map-support/register';
 import express from 'express';
@@ -34,7 +33,7 @@ addRouters(app);
 app.use(express.static('dist'));
 
 let onced = false;
-// $FlowFixMe
+
 app.start = () => {
   if (onced) {
     return;

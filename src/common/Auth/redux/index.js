@@ -1,4 +1,3 @@
-// @flow
 import { composeReducers, createAction, createTypes } from 'redux-vertical';
 import { combineForms } from 'react-redux-form';
 
@@ -10,9 +9,7 @@ export const types = createTypes([
 ], ns);
 
 export const routesMap = {
-  // $FlowFixMe
   [types.onRouteSignIn]: '/sign-in',
-  // $FlowFixMe
   [types.onRouteSignUp]: '/sign-up',
 };
 

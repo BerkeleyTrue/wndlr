@@ -1,4 +1,3 @@
-// @flow
 /* eslint-disable max-len, indent */
 import dedent from 'dedent';
 
@@ -6,10 +5,6 @@ export default ({
   guid,
   token,
   url,
-}: {
-  guid: string,
-  token: string,
-  url: string,
 }) => dedent`
 Welcome to the WNDRL community!
 
