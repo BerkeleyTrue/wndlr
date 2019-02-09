@@ -1,5 +1,3 @@
-// @flow
-import { type Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { normalizeEmail } from 'validator';
 
@@ -32,19 +30,10 @@ export const gqlType = `
   }
 `;
 
-export type User = {
-  email: string,
-  normalizedEmail: string,
-  isEmailVerified: boolean,
-  guid: string,
-  createdOn: number,
-  lastUpdatedOn: number,
-};
-
 export const createNewUser = (
-  email: string,
-  createdOn: number = Date.now(),
-): Observable<User> =>
+  email,
+  createdOn = Date.now(),
+) =>
   authUtils.generateVerificationToken().pipe(
     map(guid => ({
       guid,

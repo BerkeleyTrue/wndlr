@@ -1,10 +1,8 @@
-// @flow
 import isDev from 'isdev';
 import createDebugger from 'debug';
 import createHistory from 'history/createBrowserHistory';
 import { Subject, BehaviorSubject } from 'rxjs';
 import { withLatestFrom, switchMap, tap } from 'rxjs/operators';
-import type { StoreEnhancer as Enhancer } from 'redux';
 
 import render from './render.js';
 import { ssrStateKey, createApp } from '../common';
@@ -16,14 +14,10 @@ const {
   devToolsExtension,
   document,
   __wndlr__: { [ssrStateKey]: SSRState = {} } = {},
-}: {
-  devToolsExtension: () => Enhancer<*, *>,
-  document: Document,
-  __wndlr__: any,
 } = window;
 
 const history = createHistory();
-const DOMContainer: HTMLElement | null = document.getElementById('app');
+const DOMContainer = document.getElementById('app');
 if (!DOMContainer) {
   throw new TypeError('Dom Container could not be found');
 }

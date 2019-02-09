@@ -1,16 +1,11 @@
-// @flow
-import React, { type Node } from 'react';
+import React from 'react';
 import classnames from 'classnames/bind';
 
 import styles from './section.sss';
 
 const cx = classnames.bind(styles);
 
-type Props = {
-  children: Node,
-  className: string | void,
-};
-export default function Section({ children, className }: Props) {
+export default function Section({ children, className }) {
   return <section className={ cx('section', className) }>{ children }</section>;
 }
 

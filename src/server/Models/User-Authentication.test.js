@@ -1,11 +1,10 @@
-// @flow
 import moment from 'moment';
 import { of } from 'rxjs';
 import * as OP from 'rxjs/operators';
 
 import * as UserAthen from './User-Authentication.js';
 
-const createOldAuth = (timeAgo: number) =>
+const createOldAuth = (timeAgo) =>
   UserAthen.createToken().pipe(
     OP.map(authToken => {
       authToken.createdOn = moment()
@@ -15,7 +14,7 @@ const createOldAuth = (timeAgo: number) =>
     }),
   );
 
-const createOldAuthFromReset = (addThis: number) =>
+const createOldAuthFromReset = (addThis) =>
   createOldAuth(UserAthen.authResetTime + addThis);
 
 describe('isAuthRecent', () => {
@@ -23,7 +22,7 @@ describe('isAuthRecent', () => {
     createOldAuthFromReset(-2)
       .pipe(
         OP.map(UserAthen.isAuthRecent),
-        OP.tap((isAuthRecent: boolean) => expect(isAuthRecent).toBe(true)),
+        OP.tap((isAuthRecent) => expect(isAuthRecent).toBe(true)),
       )
       .toPromise());
 
@@ -31,7 +30,7 @@ describe('isAuthRecent', () => {
     createOldAuthFromReset(2)
       .pipe(
         OP.map(UserAthen.isAuthRecent),
-        OP.tap((isAuthRecent: boolean) => expect(isAuthRecent).toBe(true)),
+        OP.tap((isAuthRecent) => expect(isAuthRecent).toBe(false)),
       )
       .toPromise());
 });
@@ -42,7 +41,7 @@ describe('getWaitTime', () => {
     return createOldAuth(momentAgos)
       .pipe(
         OP.map(UserAthen.getWaitTime),
-        OP.tap((waitTime: number) =>
+        OP.tap((waitTime) =>
           expect(waitTime).toBeLessThanOrEqual(
             UserAthen.authResetTime - momentAgos,
           ),
@@ -73,7 +72,6 @@ describe('sendSignInEmail', () => {
     describe('queryUserNAuth', () => {
       test('queries using email', () =>
         UserAthen.internals
-          // $FlowFixMe
           .queryUserNAuth(queryOne, email)
           .pipe(
             OP.tap(query => {
@@ -85,7 +83,6 @@ describe('sendSignInEmail', () => {
     describe('createUserAndAuth', () => {
       test('queries using user and auth token', () =>
         UserAthen.internals
-          // $FlowFixMe
           .createUserAndAuth(queryOne, email, of(null))
           .pipe(
             OP.tap(ret => {
@@ -123,7 +120,6 @@ describe('sendSignInEmail', () => {
       test('queries with old auth', () =>
         UserAthen.internals
           .deleteAndCreateNewAuthForUser(
-            // $FlowFixMe
             query,
             queryOne,
             of({
@@ -138,7 +134,6 @@ describe('sendSignInEmail', () => {
               expect(ret).toMatchSnapshot({ token: expect.any(String) });
               expect(firstQuery).toMatchSnapshot();
               expect(secondQuery.bindVars).toMatchSnapshot({
-                // $FlowFixMe
                 value0: authPropMatchers,
                 value1: expect.any(Number),
               });

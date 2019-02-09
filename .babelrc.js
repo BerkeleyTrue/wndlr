@@ -42,7 +42,7 @@ module.exports = function(context, options = {}) {
           },
           rxjs: {
             transform(name) {
-              if (/(.*)Subject/.test(name)) {
+              if ((/(.*)Subject/).test(name)) {
                 return `rxjs/_esm5/internal/${name}`;
               }
               if (name === 'Observable') {
