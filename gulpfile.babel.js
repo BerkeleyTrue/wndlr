@@ -177,7 +177,7 @@ function watchBundleDevServer(done) {
   );
 }
 
-function watch() {
+function watch(done) {
   gulp.watch([
     ...paths.server.buildFiles,
     ...paths.watch,
@@ -189,6 +189,7 @@ function watch() {
     ],
     bundleServerClient,
   );
+  done();
 }
 
 export default gulp.series(
