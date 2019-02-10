@@ -21,10 +21,14 @@
     "cover:alls": "nyc report --reporter=text-lcov | coveralls",
     "cover:open": "open coverage/index.html",
     "commit": "git-cz",
-    "commitmsg": "validate-commit-msg",
     "prepublishOnly": "npm run build",
     "webpack:client:dashboard": "webpack-dashboard -p 3005",
     "webpack:server:dashboard": "webpack-dashboard -p 3006"
+  },
+  "husky": {
+    "hooks": {
+      "commit-msg": "validate-commit-msg"
+    }
   },
   "config": {
     "commitizen": {
