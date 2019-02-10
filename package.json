@@ -106,7 +106,7 @@
     "eslint-plugin-jest": "^21.15.1",
     "eslint-plugin-jsx-a11y": "^6.2.1",
     "eslint-plugin-react": "git+https://github.com/berkeleytrue/eslint-plugin-react.git#feat/rwr",
-    "gulp": "^3.9.1",
+    "gulp": "^4.0.0",
     "gulp-babel": "^7.0.1",
     "gulp-nodemon": "^2.2.1",
     "gulp-notify": "^3.2.0",
@@ -142,7 +142,7 @@
     "webpack-hot-middleware": "^2.21.2",
     "webpack-node-externals": "^1.7.2",
     "webpack-stats-plugin": "^0.2.1",
-    "webpack-stream": "^4.0.3"
+    "webpack-stream": "^5.2.1"
   },
   "repository": {
     "type": "git",
