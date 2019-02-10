@@ -1,7 +1,7 @@
 process.env.DEBUG = process.env.DEBUG || 'wndlr:*';
 const path = require('path');
-const createDebugger = require('debug');
 const gulp = require('gulp');
+const createDebugger = require('debug');
 const plumber = require('gulp-plumber');
 const notify = require('gulp-notify');
 const nodemon = require('gulp-nodemon');
@@ -66,8 +66,8 @@ const paths = {
   dist: 'dist',
 };
 
-gulp.task('build:server', () =>
-  gulp
+function buildServer() {
+  return gulp
     .src(paths.server.buildFiles)
     .pipe(plumber({ errorHandler }))
     .pipe(sourcemaps.init())
@@ -80,11 +80,11 @@ gulp.task('build:server', () =>
       }),
     )
     .pipe(sourcemaps.write())
-    .pipe(gulp.dest(paths.dist + '/server')),
-);
+    .pipe(gulp.dest(paths.dist + '/server'));
+}
 
-gulp.task('bundle:server:client', () =>
-  gulp
+function bundleServerClient() {
+  return gulp
     .src(webpackServerConfig.entry)
     .pipe(plumber({ errorHandler }))
     .pipe(
@@ -99,13 +99,10 @@ gulp.task('bundle:server:client', () =>
         webpack,
       ),
     )
-    .pipe(gulp.dest(webpackServerConfig.output.path)),
-);
+    .pipe(gulp.dest(webpackServerConfig.output.path));
+}
 
-gulp.task('watch:server', [
-  'build:server',
-  'bundle:server:client',
-], done => {
+function watchServer(done) {
   let called = false;
   const monitor = nodemon({
     // attach a devtool inspector to a running server if needed
@@ -141,80 +138,63 @@ gulp.task('watch:server', [
       process.exit(0); /* eslint-disable-line */
     });
   });
-});
+}
 
-gulp.task(
-  'watch:bundle:dev-server',
-  [
-    'build:server',
-    'bundle:server:client',
-    'watch:server',
-  ],
-  done => {
-    const webpackConfig = createWebpackClientConfig({
-      production: false,
-      client: true,
-    });
-    const compiler = webpack(webpackConfig);
-    sync.init(
-      {
-        ui: { port: proxyPort },
-        proxy: {
-          target: `http://${host}:${port}`,
-          reqHeaders: ({ url: { hostname } }) => ({
-            host: `${hostname}:${syncPort}`,
-          }),
-        },
-        logLevel: 'info',
-        port: syncPort,
-        open: false,
-        middleware: [
-          morgan('dev'),
-          webpackHotMiddleware(compiler, {
-            log: createDebugger('wndlr:gulp:watch:dev-server'),
-          }),
-          webpackDevMiddleware(compiler, {
-            publicPath: webpackConfig.output.publicPath,
-            stats: 'errors-only',
-            heartbeat: 10 * 1000,
-          }),
-        ],
+function watchBundleDevServer(done) {
+  const webpackConfig = createWebpackClientConfig({
+    production: false,
+    client: true,
+  });
+  const compiler = webpack(webpackConfig);
+  sync.init(
+    {
+      ui: { port: proxyPort },
+      proxy: {
+        target: `http://${host}:${port}`,
+        reqHeaders: ({ url: { hostname } }) => ({
+          host: `${hostname}:${syncPort}`,
+        }),
       },
-      done,
-    );
-    compiler.hooks.done.tap('Browsersync-notify', () =>
-      sync.notify('webpack build compiled'),
-    );
-  },
-);
-
-gulp.task(
-  'watch',
-  [
-    'build:server',
-    'bundle:server:client',
-    'watch:server',
-    'watch:bundle:dev-server',
-  ],
-  () => {
-    gulp.watch([
-      ...paths.server.buildFiles,
-      ...paths.watch,
-    ], [ 'build:server' ]);
-    gulp.watch(
-      [
-        ...paths.server.client.watch,
-        ...paths.watch,
+      logLevel: 'info',
+      port: syncPort,
+      open: false,
+      middleware: [
+        morgan('dev'),
+        webpackHotMiddleware(compiler, {
+          log: createDebugger('wndlr:gulp:watch:dev-server'),
+        }),
+        webpackDevMiddleware(compiler, {
+          publicPath: webpackConfig.output.publicPath,
+          stats: 'errors-only',
+          heartbeat: 10 * 1000,
+        }),
       ],
-      [ 'bundle:server:client' ],
-    );
-  },
-);
+    },
+    done,
+  );
+  compiler.hooks.done.tap('Browsersync-notify', () =>
+    sync.notify('webpack build compiled'),
+  );
+}
 
-gulp.task('default', [
-  'build:server',
-  'bundle:server:client',
-  'watch:server',
-  'watch:bundle:dev-server',
-  'watch',
-]);
+function watch() {
+  gulp.watch([
+    ...paths.server.buildFiles,
+    ...paths.watch,
+  ], buildServer);
+  gulp.watch(
+    [
+      ...paths.server.client.watch,
+      ...paths.watch,
+    ],
+    bundleServerClient,
+  );
+}
+
+export default gulp.series(
+  buildServer,
+  bundleServerClient,
+  watchServer,
+  watchBundleDevServer,
+  watch,
+);
