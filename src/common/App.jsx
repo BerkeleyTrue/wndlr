@@ -1,4 +1,3 @@
-// @flow
 import React from 'react';
 import { compose } from 'redux';
 import { hot } from 'react-hot-loader';
@@ -12,21 +11,15 @@ import styles from './app.sss';
 import Nav from './Nav';
 import NotFound from './NotFound';
 import { nsToComponent } from './routes';
-import { mainRouterSelector, type State as RoutesState } from './routes/redux';
-
-type AppState = RoutesState;
+import { mainRouterSelector } from './routes/redux';
 
 const cx = classnames.bind(styles);
 const propTypes = {};
-const mapStateToProps = (state: AppState) => ({
+const mapStateToProps = (state) => ({
   route: mainRouterSelector(state),
 });
 
-type Props = {
-  route: string,
-};
-
-export function App({ route }: Props) {
+export function App({ route }) {
   const Comp = nsToComponent[route] || NotFound;
   return (
     <div className={ cx('main') }>

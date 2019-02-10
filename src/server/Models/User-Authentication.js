@@ -105,7 +105,6 @@ export const internals = {
               _to: auth._id
             } INTO userToAuthentication
           `,
-          // $FlowFixMe
         ).pipe(mapTo({ token: auth.token, guid: user.guid, isSignUp: true })),
       ),
       tap(() => log('new user')),
