@@ -9,6 +9,7 @@ import bodyParser from 'body-parser';
 
 import addRouters from './routers.js';
 import { general as config } from './config.js';
+import { gracefulShutdown } from './graceful-shutdown.js';
 
 const log = createDebugger(`${config.ns}:server`);
 log.enabled = true;
@@ -43,18 +44,14 @@ app.start = () => {
     log(`${app.get('dn')} server started`);
     log(`server started on port ${app.get('port')}`);
     log(`server is in ${isDev ? 'dev' : 'prod'} mode`);
+
     if (app.get('proxyPort')) {
       log(`server is behind proxyPort ${app.get('proxyPort')}`);
     }
   });
 
-  // on signal to kill, close server
-  process.on('SIGINT', () => {
-    log('Shutting down server');
-    server.close(() => {
-      log('Server is closed');
-    });
-  });
+  gracefulShutdown(app, server);
+
   onced = true;
 };
 
