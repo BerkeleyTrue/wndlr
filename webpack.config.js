@@ -72,7 +72,6 @@ module.exports = env => {
             {
               loader: 'css-loader',
               options: removeEmpty({
-                minimize: ifProd(true),
                 importLoaders: 1,
               }),
             },
@@ -91,7 +90,6 @@ module.exports = env => {
             {
               loader: 'css-loader',
               options: removeEmpty({
-                minimize: ifProd(true),
                 modules: true,
                 importLoaders: 1,
                 localIdentName: ifDev('[name]-[local]---[hash:base64:5]'),

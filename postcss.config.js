@@ -11,5 +11,6 @@ module.exports = {
     'postcss-normalize': {},
     'postcss-console': {},
     autoprefixer: {},
+    cssnano: {},
   },
 };
