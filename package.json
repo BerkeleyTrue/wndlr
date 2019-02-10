@@ -107,7 +107,7 @@
     "eslint": "^5.0.0",
     "eslint-plugin-class-property": "^1.0.6",
     "eslint-plugin-import": "^2.7.0",
-    "eslint-plugin-jest": "^21.15.1",
+    "eslint-plugin-jest": "^22.2.2",
     "eslint-plugin-jsx-a11y": "^6.2.1",
     "eslint-plugin-react": "git+https://github.com/berkeleytrue/eslint-plugin-react.git#feat/rwr",
     "gulp": "^4.0.0",
