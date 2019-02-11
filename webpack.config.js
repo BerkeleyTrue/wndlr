@@ -121,7 +121,7 @@ module.exports = env => {
       new DashboardPlugin({ port: 3005 }),
     ]),
     optimization: {
-      minimizer: [ ifProd(new TerserPlugin({
+      minimizer: removeEmpty([ ifProd(new TerserPlugin({
         terserOptions: {
           parse: {
             // we want terser to parse ecma 8 code. However, we don't want it
@@ -164,7 +164,7 @@ module.exports = env => {
         // Enable file caching
         cache: true,
         sourceMap: shouldUseSourceMap,
-      })) ],
+      })) ]),
     },
   };
 };
