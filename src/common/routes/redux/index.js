@@ -5,7 +5,7 @@ import { ns as authNS, routesMap as authRoutes } from '../../Auth/redux';
 
 export const ns = 'mainRouter';
 
-export const mainRouterSelector = (state) => state[ns];
+export const mainRouterSelector = state => state[ns];
 
 export default addNS(ns, function mainRouterReducer(
   state = 'NotFound',

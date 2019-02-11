@@ -21,34 +21,38 @@ export function gracefulShutdown(app, server) {
     fromEvent(process, 'SIGTERM').pipe(mapTo('SIGTERM')),
     // used by nodemon to restart on changes
     fromEvent(process, 'SIGUSR2').pipe(mapTo('SIGUSR2')),
-  ).pipe(
-    takeUntil(takeTillProxy),
-    tap(sig => log(`${sig} signal received`)),
-    // debounceTime(1000),
-    exhaustMap(sig => {
-      log('starting shutdown');
-      return merge(
-        shutdownServer().pipe(tap(() => log('Express server is closed'))),
-      ).pipe(
-        // prevent express uncompleted request from hanging shutdown process
-        timeout(2000),
-        catchError(err => {
-          if (err.name === 'TimeoutError') {
-            log('Express server shutdown timeout');
-            return of(null);
-          }
-          throw err;
-        }),
-        mapTo(sig),
-      );
-    }),
-  ).subscribe(
-    sig => {
-      takeTillProxy.next();
-      log(`killing process with ${sig}`);
-      process.kill(process.pid, sig);
-    },
-    err => { throw err; },
-    () => log('shutdown complete'),
-  );
+  )
+    .pipe(
+      takeUntil(takeTillProxy),
+      tap(sig => log(`${sig} signal received`)),
+      // debounceTime(1000),
+      exhaustMap(sig => {
+        log('starting shutdown');
+        return merge(
+          shutdownServer().pipe(tap(() => log('Express server is closed'))),
+        ).pipe(
+          // prevent express uncompleted request from hanging shutdown process
+          timeout(2000),
+          catchError(err => {
+            if (err.name === 'TimeoutError') {
+              log('Express server shutdown timeout');
+              return of(null);
+            }
+            throw err;
+          }),
+          mapTo(sig),
+        );
+      }),
+    )
+    .subscribe(
+      sig => {
+        takeTillProxy.next();
+        log(`killing process with ${sig}`);
+        process.kill(process.pid, sig);
+      },
+      err => {
+        throw err;
+      },
+      () => log('shutdown complete'),
+    );
 }

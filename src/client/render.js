@@ -6,10 +6,7 @@ import { Observable } from 'rxjs';
 //   DomContainer: DOMNode
 // ) => Observable[RootInstance]
 
-export default function render(
-  element,
-  DOMContainer,
-) {
+export default function render(element, DOMContainer) {
   return Observable.create(observer => {
     try {
       hydrate(element, DOMContainer, function() {

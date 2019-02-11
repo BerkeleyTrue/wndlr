@@ -6,13 +6,7 @@ import styles from './input.sss';
 
 const cx = classnames.bind(styles);
 
-export default function Input({
-  messages,
-  model,
-  label,
-  type,
-  ...rest
-}) {
+export default function Input({ messages, model, label, type, ...rest }) {
   const controlProps = { model, ...rest };
   let Comp = Control[type];
   if (!Comp) {

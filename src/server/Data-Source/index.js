@@ -8,8 +8,7 @@ const db = new Database({ url: settings.url });
 db.useDatabase(settings.name);
 db.useBasicAuth(settings.auth.user, settings.auth.password);
 
-export const query = (aqlQuery) =>
-  defer(() => db.query(aqlQuery));
+export const query = aqlQuery => defer(() => db.query(aqlQuery));
 
-export const queryOne = (aqlQuery) =>
+export const queryOne = aqlQuery =>
   query(aqlQuery).pipe(concatMap(cur => cur.next()));

@@ -1,11 +1,7 @@
 /* eslint-disable max-len, indent */
 import dedent from 'dedent';
 
-export default ({
-  guid,
-  token,
-  url,
-}) => dedent`
+export default ({ guid, token, url }) => dedent`
 Here's your sign in link. It will instantly sign you into WNDLR.com - no password necessary:
 
 ${url}/passwordless-auth?guid=${guid}&token=${token}

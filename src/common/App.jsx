@@ -15,7 +15,7 @@ import { mainRouterSelector } from './routes/redux';
 
 const cx = classnames.bind(styles);
 const propTypes = {};
-const mapStateToProps = (state) => ({
+const mapStateToProps = state => ({
   route: mainRouterSelector(state),
 });
 
@@ -33,7 +33,10 @@ export function App({ route }) {
   );
 }
 
-export default compose(hot(module), connect(mapStateToProps))(App);
+export default compose(
+  hot(module),
+  connect(mapStateToProps),
+)(App);
 
 App.displayName = 'App';
 App.propTypes = propTypes;

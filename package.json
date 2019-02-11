@@ -7,7 +7,7 @@
     "start": "gulp",
     "lint": "eslint --ext=js,jsx .",
     "lint:fix": "eslint . --ext=js,jsx --fix",
-    "format": "prettier '*.js' 'src/**/*.!(global.sss|sss)' --trailing-comma all --single-quote --write",
+    "format": "prettier --trailing-comma all --single-quote --write '*.js' 'src/**/*.!(global.sss|sss)' '!src/**/*.test.js.snap'",
     "postformat": "npm run lint:fix",
     "build": "npm run build:client && npm run build:server:client && npm run build:server",
     "build:client": "BABEL_TARGET=client webpack --env.production=true",

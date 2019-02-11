@@ -30,10 +30,7 @@ export const gqlType = `
   }
 `;
 
-export const createNewUser = (
-  email,
-  createdOn = Date.now(),
-) =>
+export const createNewUser = (email, createdOn = Date.now()) =>
   authUtils.generateVerificationToken().pipe(
     map(guid => ({
       guid,

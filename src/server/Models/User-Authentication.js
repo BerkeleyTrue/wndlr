@@ -12,7 +12,7 @@ import renderUserSignUpMail from './user-sign-up.js';
 import { authUtils } from '../utils';
 
 const log = createDebugger('wndlr:server:Models:UserAuthentication');
-const createWaitMessage = (timeTillAuthReset) => dedent`
+const createWaitMessage = timeTillAuthReset => dedent`
 Please wait at least ${timeTillAuthReset} minute${
   timeTillAuthReset > 1 ? 's' : ''
 } for the sign in email to arrive
@@ -36,10 +36,10 @@ export const gqlType = `
 const pluckCreatedOn = ({ createdOn }) => createdOn;
 const createResetMoment = () => moment().subtract(authResetTime, 'm');
 
-export const isAuthRecent = (auth) =>
+export const isAuthRecent = auth =>
   moment(pluckCreatedOn(auth)).isAfter(createResetMoment());
 
-export const getWaitTime = (auth) =>
+export const getWaitTime = auth =>
   moment
     .duration(moment(pluckCreatedOn(auth)).diff(createResetMoment()))
     .minutes();
@@ -75,11 +75,7 @@ export const internals = {
         RETURN { user, auth }
       `,
     ),
-  createUserAndAuth: (
-    queryOne,
-    email,
-    noUser,
-  ) =>
+  createUserAndAuth: (queryOne, email, noUser) =>
     noUser.pipe(
       switchMap(() => forkJoin(User.createNewUser(email), createToken())),
       switchMap(([
@@ -109,10 +105,7 @@ export const internals = {
       ),
       tap(() => log('new user')),
     ),
-  createAuthForUser: (
-    queryOne,
-    userExistsHasNoAuth,
-  ) =>
+  createAuthForUser: (queryOne, userExistsHasNoAuth) =>
     userExistsHasNoAuth.pipe(
       switchMap(({ user }) =>
         createToken().pipe(
@@ -143,11 +136,7 @@ export const internals = {
         ),
       ),
     ),
-  deleteAndCreateNewAuthForUser: (
-    query,
-    queryOne,
-    userExistsHasOutdatedAuth,
-  ) =>
+  deleteAndCreateNewAuthForUser: (query, queryOne, userExistsHasOutdatedAuth) =>
     userExistsHasOutdatedAuth.pipe(
       switchMap(({ user, auth }) =>
         queryOne(
@@ -210,12 +199,10 @@ export const internals = {
 //   encode emailj
 //   send email
 //   return message
-export const sendSignInEmail = (
-  url,
-  sendMail,
-  query,
-  queryOne,
-) => (root, { email }) => {
+export const sendSignInEmail = (url, sendMail, query, queryOne) => (
+  root,
+  { email },
+) => {
   const queryUserNAuth = internals.queryUserNAuth(
     queryOne,
     normalizeEmail(email),

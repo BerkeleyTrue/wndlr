@@ -1,11 +1,7 @@
 /* eslint-disable max-len, indent */
 import dedent from 'dedent';
 
-export default ({
-  guid,
-  token,
-  url,
-}) => dedent`
+export default ({ guid, token, url }) => dedent`
 Welcome to the WNDRL community!
 
 We have created a new account for you.

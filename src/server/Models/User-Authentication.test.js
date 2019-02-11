@@ -4,7 +4,7 @@ import * as OP from 'rxjs/operators';
 
 import * as UserAthen from './User-Authentication.js';
 
-const createOldAuth = (timeAgo) =>
+const createOldAuth = timeAgo =>
   UserAthen.createToken().pipe(
     OP.map(authToken => {
       authToken.createdOn = moment()
@@ -14,7 +14,7 @@ const createOldAuth = (timeAgo) =>
     }),
   );
 
-const createOldAuthFromReset = (addThis) =>
+const createOldAuthFromReset = addThis =>
   createOldAuth(UserAthen.authResetTime + addThis);
 
 describe('isAuthRecent', () => {
@@ -22,7 +22,7 @@ describe('isAuthRecent', () => {
     createOldAuthFromReset(-2)
       .pipe(
         OP.map(UserAthen.isAuthRecent),
-        OP.tap((isAuthRecent) => expect(isAuthRecent).toBe(true)),
+        OP.tap(isAuthRecent => expect(isAuthRecent).toBe(true)),
       )
       .toPromise());
 
@@ -30,7 +30,7 @@ describe('isAuthRecent', () => {
     createOldAuthFromReset(2)
       .pipe(
         OP.map(UserAthen.isAuthRecent),
-        OP.tap((isAuthRecent) => expect(isAuthRecent).toBe(false)),
+        OP.tap(isAuthRecent => expect(isAuthRecent).toBe(false)),
       )
       .toPromise());
 });
@@ -41,7 +41,7 @@ describe('getWaitTime', () => {
     return createOldAuth(momentAgos)
       .pipe(
         OP.map(UserAthen.getWaitTime),
-        OP.tap((waitTime) =>
+        OP.tap(waitTime =>
           expect(waitTime).toBeLessThanOrEqual(
             UserAthen.authResetTime - momentAgos,
           ),

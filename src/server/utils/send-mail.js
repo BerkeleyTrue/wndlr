@@ -50,10 +50,7 @@ const transportsByName = transports.reduce(
   {},
 );
 
-export function sendMail({
-  transport: transportName = 'default',
-  ...args
-}) {
+export function sendMail({ transport: transportName = 'default', ...args }) {
   const send = transportsByName[transportName || 'default'];
   if (!send) {
     throw new Error('No email transport set');
