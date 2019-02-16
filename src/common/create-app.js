@@ -6,7 +6,7 @@ import { selectLocationState, connectRoutes } from 'redux-first-router';
 import { of } from 'rxjs';
 import { addNS } from 'redux-vertical';
 
-import App from './App.jsx';
+import App from './App.js';
 import routesMap from './routes-map.js';
 import createReducer from './create-reducer.js';
 
