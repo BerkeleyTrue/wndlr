@@ -1,3 +1,4 @@
+import { gql } from 'apollo-server-express';
 import { GraphQLScalarType } from 'graphql';
 import { Kind } from 'graphql/language';
 import { GraphQLError } from 'graphql/error';
@@ -69,7 +70,7 @@ export const GraphQLNormalizedEmail = new GraphQLScalarType({
   },
 });
 
-export const typeDefs = `
+export const typeDefs = gql`
   scalar Email
   scalar NormalizedEmail
 `;

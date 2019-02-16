@@ -1,6 +1,5 @@
 import isDev from 'isdev';
-import { graphqlExpress, graphiqlExpress } from 'apollo-server-express';
-import { makeExecutableSchema } from 'graphql-tools';
+import { ApolloServer, gql } from 'apollo-server-express';
 
 import { typeDefs, makeResolvers } from './schema.js';
 import {
@@ -8,7 +7,7 @@ import {
   resolvers as emailResolvers,
 } from './GraphQLEmail.js';
 
-const rootType = `
+const rootType = gql`
   type Query {
     Users: [User]
   }
@@ -16,20 +15,19 @@ const rootType = `
 export default function graphql(app) {
   // The GraphQL schema in string form
 
-  const schema = makeExecutableSchema({
+  const server = new ApolloServer({
     typeDefs: [
       rootType,
       emailTypeDefs,
       typeDefs,
     ],
-    resolvers: [
-      emailResolvers,
-      makeResolvers(app),
-    ],
+    resolvers: {
+      ...emailResolvers,
+      ...makeResolvers(app),
+    },
+    playground: isDev,
+    debug: isDev,
   });
 
-  app.use('/graphql', graphqlExpress({ schema }));
-  if (isDev) {
-    app.use('/graphiql', graphiqlExpress({ endpointURL: '/graphql' }));
-  }
+  server.applyMiddleware({ app });
 }
