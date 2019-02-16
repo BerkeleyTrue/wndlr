@@ -1,8 +1,10 @@
+import { gql } from 'apollo-server-express';
+
 import { User, UserAuthentication as UserAuthen } from '../Models';
 import { sendMail } from '../utils';
 import { query, queryOne } from '../Data-Source';
 
-export const typeDefs = `
+export const typeDefs = gql`
   ${User.gqlType}
 
   ${UserAuthen.gqlType}
