@@ -9,7 +9,7 @@ const DashboardPlugin = require('webpack-dashboard/plugin');
 // large source files.
 const shouldUseSourceMap = process.env.GENERATE_SOURCEMAP !== 'false';
 
-const clientEntry = { bundle: './src/client/index.jsx' };
+const clientEntry = { bundle: './src/client/index.js' };
 const rxPathsObj = rxPaths();
 const rxPathsFixed = Object.keys(rxPathsObj)
   .map(key => [
