@@ -8,7 +8,6 @@ const nodemon = require('gulp-nodemon');
 const browserSync = require('browser-sync');
 const babel = require('gulp-babel');
 const sourcemaps = require('gulp-sourcemaps');
-const morgan = require('morgan');
 const webpack = require('webpack');
 const webpackStream = require('webpack-stream');
 const webpackDevMiddleware = require('webpack-dev-middleware');
@@ -159,7 +158,6 @@ function watchBundleDevServer(done) {
       port: syncPort,
       open: false,
       middleware: [
-        morgan('dev'),
         webpackHotMiddleware(compiler, {
           log: createDebugger('wndlr:gulp:watch:dev-server'),
         }),
