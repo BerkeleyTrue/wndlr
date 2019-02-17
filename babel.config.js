@@ -1,11 +1,13 @@
 const { getIfUtils, removeEmpty } = require('webpack-config-utils');
 
-module.exports = function(context, options = {}) {
+module.exports = function(api) {
+  const isClient = api.caller(({ name }) => name === 'babel-loader-client');
   const env = {
     development: process.env.NODE_ENV !== 'production',
-    client: process.env.BABEL_TARGET === 'client' || options.client,
+    client: process.env.BABEL_TARGET === 'client' || isClient,
     test: process.env.NODE_ENV === 'test',
   };
+  api.cache.using(() => isClient ? 'client' : 'nonde');
   const {
     ifClient,
     ifNotClient: ifNode,
@@ -15,9 +17,9 @@ module.exports = function(context, options = {}) {
 
   return {
     presets: removeEmpty([
-      'react',
+      '@babel/react',
       [
-        'env',
+        '@babel/env',
         {
           targets: removeEmpty({
             node: ifNode('current'),
@@ -57,15 +59,15 @@ module.exports = function(context, options = {}) {
         },
       ]),
       [
-        'transform-runtime',
+        '@babel/plugin-transform-runtime',
         {
           helpers: true,
-          polyfill: false,
           regenerator: false,
         },
       ],
-      'transform-export-extensions',
-      'transform-object-rest-spread',
+      '@babel/plugin-proposal-export-default-from',
+      '@babel/plugin-proposal-export-namespace-from',
+      '@babel/plugin-proposal-object-rest-spread',
       ifProd('dev-expression'),
       ifClient('react-hot-loader/babel'),
     ]),
