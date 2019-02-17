@@ -63,6 +63,7 @@ module.exports = env => {
           loader: 'babel-loader',
           options: removeEmpty({
             cacheDirectory: ifDev(true),
+            caller: { name: 'babel-loader-client' },
           }),
         },
         {

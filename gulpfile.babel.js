@@ -1,5 +1,4 @@
 process.env.DEBUG = process.env.DEBUG || 'wndlr:*';
-const path = require('path');
 const gulp = require('gulp');
 const createDebugger = require('debug');
 const plumber = require('gulp-plumber');
@@ -72,10 +71,7 @@ function buildServer() {
     .pipe(sourcemaps.init())
     .pipe(
       babel({
-        presets: [ [
-          path.join(__dirname, '/.babelrc.js'),
-          { client: false },
-        ] ],
+        caller: { name: 'gulp-babel-node' },
       }),
     )
     .pipe(sourcemaps.write())
