@@ -64,7 +64,7 @@ const paths = {
   dist: 'dist',
 };
 
-function buildServer() {
+export function buildServer() {
   return gulp
     .src(paths.server.buildFiles)
     .pipe(plumber({ errorHandler }))
@@ -78,7 +78,7 @@ function buildServer() {
     .pipe(gulp.dest(paths.dist + '/server'));
 }
 
-function bundleServerClient() {
+export function bundleServerClient() {
   return gulp
     .src(webpackServerConfig.entry)
     .pipe(plumber({ errorHandler }))
