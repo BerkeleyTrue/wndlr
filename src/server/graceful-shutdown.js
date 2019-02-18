@@ -9,7 +9,9 @@ import {
   timeout,
 } from 'rxjs/operators';
 
-const log = createDebugger('wndlr:graceful-shutdown');
+import { general as config } from './config.js';
+
+const log = createDebugger(`${config.ns}:graceful-shutdown`);
 
 export function gracefulShutdown(app, server) {
   const takeTillProxy = new Subject();
