@@ -12,6 +12,8 @@ import {
 import { general as config } from './config.js';
 
 const log = createDebugger(`${config.ns}:graceful-shutdown`);
+// always show shutdown message
+log.enabled = true;
 
 export function gracefulShutdown(app, server) {
   const takeTillProxy = new Subject();
