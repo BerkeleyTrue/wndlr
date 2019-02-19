@@ -1,4 +1,4 @@
-import R from 'ramda';
+import * as R from 'ramda';
 import { default as addReactRoutes } from './React';
 import { default as addGraphqlRoutes } from './Graphql';
 

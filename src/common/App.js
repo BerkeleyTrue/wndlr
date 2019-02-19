@@ -1,4 +1,4 @@
-import R from 'ramda';
+import * as R from 'ramda';
 import React from 'react';
 import { hot } from 'react-hot-loader';
 import { connect } from 'react-redux';

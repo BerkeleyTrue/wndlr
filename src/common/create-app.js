@@ -1,4 +1,4 @@
-import R from 'ramda';
+import * as R from 'ramda';
 import React from 'react';
 import createDebugger from 'debug';
 import { createStore, compose, applyMiddleware } from 'redux';

@@ -1,4 +1,4 @@
-import R from 'ramda';
+import * as R from 'ramda';
 import 'dotenv/config';
 import 'source-map-support/register';
 import express from 'express';

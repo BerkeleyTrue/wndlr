@@ -1,4 +1,4 @@
-import R from 'ramda';
+import * as R from 'ramda';
 import { bindNodeCallback } from 'rxjs';
 import nodemailer from 'nodemailer';
 import { email as config } from '../config.js';

@@ -1,4 +1,4 @@
-import R from 'ramda';
+import * as R from 'ramda';
 import createDebugger from 'debug';
 import dedent from 'dedent';
 import moment from 'moment';
@@ -40,13 +40,13 @@ const createResetMoment = () => moment().subtract(authResetTime, 'm');
 export const isAuthRecent = R.pipe(
   pluckCreatedOn,
   moment,
-  (createdOn) => createdOn.isAfter(createResetMoment()),
+  createdOn => createdOn.isAfter(createResetMoment()),
 );
 
 export const getWaitTime = R.pipe(
   pluckCreatedOn,
   moment,
-  (createdOn) => createdOn.diff(createResetMoment()),
+  createdOn => createdOn.diff(createResetMoment()),
   moment.duration,
   dur => dur.minutes(),
 );
@@ -218,18 +218,28 @@ export const sendSignInEmail = (url, sendMail, query, queryOne) => (
   const [
     userExists,
     noUser,
-  ] = partition(R.prop('user'), Boolean)(queryUserNAuth);
+  ] = partition(R.prop('user'), Boolean)(
+    queryUserNAuth,
+  );
 
   const [
     userExistsHasOldAuth,
     userExistsHasNoAuth,
-  ] = partition(R.prop('auth'), Boolean)(userExists);
+  ] = partition(
+    R.prop('auth'),
+    Boolean,
+  )(userExists);
 
   const [
     userExistsAndHasRecentAuth,
     userExistsHasOutdatedAuth,
   ] = R.pipe(
-    partition(R.pipe(R.prop('auth'), isAuthRecent)),
+    partition(
+      R.pipe(
+        R.prop('auth'),
+        isAuthRecent,
+      ),
+    ),
   )(userExistsHasOldAuth);
 
   const createUserAndAuth = internals.createUserAndAuth(
@@ -283,10 +293,12 @@ export const sendSignInEmail = (url, sendMail, query, queryOne) => (
           Check your email and click the sign in link we sent you.
         `,
       })),
-    )(merge(
-      createUserAndAuth,
-      createAuthForUser,
-      deleteAndCreateNewAuthForUser,
-    )),
+    )(
+      merge(
+        createUserAndAuth,
+        createAuthForUser,
+        deleteAndCreateNewAuthForUser,
+      ),
+    ),
   ).toPromise();
 };
