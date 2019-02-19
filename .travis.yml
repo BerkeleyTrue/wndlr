@@ -24,4 +24,4 @@ cache:
   - "$HOME/.npm"
 
 after_success:
-  - npm run cover:alls
+  - npm run cover:upload
