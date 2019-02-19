@@ -1,15 +1,23 @@
+import R from 'ramda';
 import { bindNodeCallback } from 'rxjs';
 import nodemailer from 'nodemailer';
 import { email as config } from '../config.js';
 
+const defaultToStub = R.defaultTo('stub');
 function setupTransport(transportsByName, setting) {
   let transport;
-  const transportType = (setting.type || 'stub').toLowerCase();
-  const transportName = (
-    setting.alias ||
-    setting.type ||
-    'strub'
-  ).toLowerCase();
+  const transportType = R.pipe(
+    R.prop('type'),
+    defaultToStub,
+    R.toLower,
+  )(setting);
+
+  const transportName = R.pipe(
+    ({ alias, type }) => alias || type,
+    defaultToStub,
+    R.toLower,
+  )(setting);
+
   if (transportType === 'direct') {
     transport = nodemailer.createTransport();
   } else if (transportType === 'smpt') {
@@ -27,11 +35,14 @@ function setupTransport(transportsByName, setting) {
     }
     transport = nodemailer.createTransport(transportModule(setting));
   }
+
   const send = bindNodeCallback(transport.sendMail.bind(transport));
   transportsByName[transportName] = send;
+
   if (!transportsByName['default']) {
     transportsByName['default'] = send;
   }
+
   return transportsByName;
 }
 

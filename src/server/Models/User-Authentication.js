@@ -1,3 +1,4 @@
+import R from 'ramda';
 import createDebugger from 'debug';
 import dedent from 'dedent';
 import moment from 'moment';
@@ -33,25 +34,31 @@ export const gqlType = `
   }
 `;
 
-const pluckCreatedOn = ({ createdOn }) => createdOn;
+const pluckCreatedOn = R.prop('createdOn');
 const createResetMoment = () => moment().subtract(authResetTime, 'm');
 
-export const isAuthRecent = auth =>
-  moment(pluckCreatedOn(auth)).isAfter(createResetMoment());
+export const isAuthRecent = R.pipe(
+  pluckCreatedOn,
+  moment,
+  (createdOn) => createdOn.isAfter(createResetMoment()),
+);
 
-export const getWaitTime = auth =>
-  moment
-    .duration(moment(pluckCreatedOn(auth)).diff(createResetMoment()))
-    .minutes();
+export const getWaitTime = R.pipe(
+  pluckCreatedOn,
+  moment,
+  (createdOn) => createdOn.diff(createResetMoment()),
+  moment.duration,
+  dur => dur.minutes(),
+);
 
-export const createToken = () =>
-  authUtils.generateVerificationToken().pipe(
-    map(token => ({
-      token,
-      ttl: ttl15Min,
-      createdOn: Date.now(),
-    })),
-  );
+export const createToken = R.pipe(
+  authUtils.generateVerificationToken,
+  map(token => ({
+    token,
+    ttl: ttl15Min,
+    createdOn: Date.now(),
+  })),
+);
 
 export const internals = {
   queryUserNAuth: (queryOne, email) =>
@@ -211,20 +218,18 @@ export const sendSignInEmail = (url, sendMail, query, queryOne) => (
   const [
     userExists,
     noUser,
-  ] = partition(({ user }) => !!user)(queryUserNAuth);
+  ] = partition(R.prop('user'), Boolean)(queryUserNAuth);
 
   const [
     userExistsHasOldAuth,
     userExistsHasNoAuth,
-  ] = partition(
-    ({ auth }) => !!auth,
-  )(userExists);
+  ] = partition(R.prop('auth'), Boolean)(userExists);
 
   const [
     userExistsAndHasRecentAuth,
     userExistsHasOutdatedAuth,
-  ] = partition(
-    ({ auth }) => isAuthRecent(auth),
+  ] = R.pipe(
+    partition(R.pipe(R.prop('auth'), isAuthRecent)),
   )(userExistsHasOldAuth);
 
   const createUserAndAuth = internals.createUserAndAuth(
@@ -238,13 +243,13 @@ export const sendSignInEmail = (url, sendMail, query, queryOne) => (
     userExistsHasNoAuth,
   );
 
-  const sendWaitMessage = userExistsAndHasRecentAuth.pipe(
+  const sendWaitMessage = R.pipe(
     pluck('auth'),
     map(getWaitTime),
     map(createWaitMessage),
     map(message => ({ message })),
     tap(() => log('user exists has recent auth')),
-  );
+  )(userExistsAndHasRecentAuth);
 
   const deleteAndCreateNewAuthForUser = internals.deleteAndCreateNewAuthForUser(
     query,
@@ -254,11 +259,7 @@ export const sendSignInEmail = (url, sendMail, query, queryOne) => (
 
   return merge(
     sendWaitMessage,
-    merge(
-      createUserAndAuth,
-      createAuthForUser,
-      deleteAndCreateNewAuthForUser,
-    ).pipe(
+    R.pipe(
       switchMap(({ guid, token, isSignUp }) => {
         const renderText = isSignUp ?
           renderUserSignUpMail :
@@ -282,6 +283,10 @@ export const sendSignInEmail = (url, sendMail, query, queryOne) => (
           Check your email and click the sign in link we sent you.
         `,
       })),
-    ),
+    )(merge(
+      createUserAndAuth,
+      createAuthForUser,
+      deleteAndCreateNewAuthForUser,
+    )),
   ).toPromise();
 };

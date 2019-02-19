@@ -1,5 +1,5 @@
+import R from 'ramda';
 import React from 'react';
-import { compose } from 'redux';
 import { hot } from 'react-hot-loader';
 import { connect } from 'react-redux';
 import classnames from 'classnames/bind';
@@ -33,7 +33,7 @@ export function App({ route }) {
   );
 }
 
-export default compose(
+export default R.compose(
   hot(module),
   connect(mapStateToProps),
 )(App);

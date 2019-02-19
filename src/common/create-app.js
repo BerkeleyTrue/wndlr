@@ -1,3 +1,4 @@
+import R from 'ramda';
 import React from 'react';
 import createDebugger from 'debug';
 import { createStore, compose, applyMiddleware } from 'redux';
@@ -17,7 +18,7 @@ export default function createApp({
   // a new tree on subsequent render(appElement) calls.
   // This prevents the Provider warning about the store object changing
   defaultState,
-  enhancer: sideEnhancer = x => x,
+  enhancer: sideEnhancer = R.identity,
   history,
   rootKey,
 }) {

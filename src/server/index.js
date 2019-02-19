@@ -1,3 +1,4 @@
+import R from 'ramda';
 import 'dotenv/config';
 import 'source-map-support/register';
 import express from 'express';
@@ -17,12 +18,10 @@ log.enabled = true;
 const app = express();
 
 // setttings
-Object.keys(config)
-  .map(key => [
-    key,
-    config[key],
-  ])
-  .forEach(args => app.set(...args));
+R.pipe(
+  R.toPairs,
+  R.forEach(args => app.set(...args)),
+)(config);
 
 app.use(morgan('dev'));
 app.use(bodyParser.json());
@@ -33,12 +32,7 @@ addRouters(app);
 // server static files
 app.use(express.static('dist'));
 
-let onced = false;
-
-app.start = () => {
-  if (onced) {
-    return;
-  }
+app.start = R.once(() => {
   const server = app.listen(app.get('port'), () => {
     app.emit('started');
     log(`${app.get('dn')} server started`);
@@ -51,9 +45,7 @@ app.start = () => {
   });
 
   gracefulShutdown(app, server);
-
-  onced = true;
-};
+});
 
 module.exports = app;
 
