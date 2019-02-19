@@ -36,11 +36,16 @@ module.exports = function(api) {
     plugins: removeEmpty([
       ifTest('istanbul'),
       ifClient([
+        'ramda',
+        { useEs: true },
+      ]),
+      ifClient([
         'transform-imports',
         {
           'rxjs/operators': {
             transform: 'rxjs/_esm5/internal/operators/${member}',
             preventFullImport: true,
+            skipDefaultConversion: true,
           },
           rxjs: {
             transform(name) {
@@ -55,6 +60,7 @@ module.exports = function(api) {
               }
               return 'rxjs';
             },
+            skipDefaultConversion: true,
           },
         },
       ]),

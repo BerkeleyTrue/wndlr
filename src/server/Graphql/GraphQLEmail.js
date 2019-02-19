@@ -1,3 +1,4 @@
+import R from 'ramda';
 import { gql } from 'apollo-server-express';
 import { GraphQLScalarType } from 'graphql';
 import { Kind } from 'graphql/language';
@@ -12,7 +13,7 @@ export const GraphQLEmail = new GraphQLScalarType({
       return null;
     }
     if (isEmail(value)) {
-      return value.toLowerCase();
+      return R.toLower(value);
     }
     return null;
   },
