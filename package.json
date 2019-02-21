@@ -18,7 +18,7 @@
     "test:watch": "jest --watch",
     "cover": "nyc report --reporter=html",
     "cover:watch": "browser-sync start --ss coverage --port 3001 -f coverage/index.html & nodemon --watch src/**/* --watch test/**/* --delay 2 --exec 'npm run test && npm run cover'",
-    "cover:upload": "nyc report --reporter=text-lcov > coeverage.lcov && codecov",
+    "cover:upload": "nyc report --reporter=text-lcov > coverage.lcov && codecov",
     "cover:open": "open coverage/index.html",
     "commit": "git-cz",
     "prepublishOnly": "npm run build",
