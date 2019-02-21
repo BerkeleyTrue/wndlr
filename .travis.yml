@@ -17,6 +17,10 @@ install:
   - node travis-install.js
 
 before_script: greenkeeper-lockfile-update
+
+script:
+  npm run test -- --coverage
+
 after_script: greenkeeper-lockfile-upload
 
 cache:
