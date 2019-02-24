@@ -5,7 +5,7 @@ databaseType: document
 
 generate:
   - generator: javascript-client
-    output: ./generated/prisma-client
+    output: ../server/generated/prisma-client
 
 hooks:
   post-deploy:
