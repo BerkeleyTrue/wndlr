@@ -1,0 +1,21 @@
+type User {
+  id: ID! @id
+
+  email: String! @unique
+  normalizedEmail: String! @unique
+
+  isEmailVerified: Boolean! @default(value: false)
+
+  createdAt: DateTime! @createdAt
+  updatedAt: DateTime! @updatedAt
+
+  authenTokens: [AuthenToken!]! @relation(name: "AuthenTokensByUser", link: INLINE, onDelete: CASCADE)
+}
+
+type AuthenToken {
+  id: ID! @id
+  token: String!
+  ttl: Int!
+  createdAt: DateTime! @createAt
+  user: User! @relation(name: "AuthenTokensByUser")
+}
