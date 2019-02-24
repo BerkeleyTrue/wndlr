@@ -2,6 +2,7 @@ import * as R from 'ramda';
 import createDebugger from 'debug';
 import dedent from 'dedent';
 import moment from 'moment';
+import { gql } from 'apollo-server-express';
 import { aql } from 'arangojs';
 import { forkJoin, merge } from 'rxjs';
 import { normalizeEmail } from 'validator';
@@ -13,16 +14,18 @@ import renderUserSignUpMail from './user-sign-up.js';
 import { authUtils } from '../utils';
 
 const log = createDebugger('wndlr:server:Models:UserAuthentication');
+
 const createWaitMessage = timeTillAuthReset => dedent`
 Please wait at least ${timeTillAuthReset} minute${
   timeTillAuthReset > 1 ? 's' : ''
 } for the sign in email to arrive
   before requesting a new one.
 `;
-export const ttl15Min = 15 * 60 * 1000;
+
+export const ttl = moment.duration(15, 'minutes').asMilliseconds();
 export const authResetTime = 5;
 
-export const gqlType = `
+export const gqlType = gql`
   """
   User Authentication Document:
   Relates to a user who is attempting to sign in or sign up.
@@ -55,7 +58,7 @@ export const createToken = R.pipe(
   authUtils.generateVerificationToken,
   map(token => ({
     token,
-    ttl: ttl15Min,
+    ttl: ttl,
     createdOn: Date.now(),
   })),
 );
