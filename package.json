@@ -99,7 +99,7 @@
     "babel-jest": "^24.1.0",
     "babel-loader": "^8.0.5",
     "babel-plugin-dev-expression": "^0.2.1",
-    "babel-plugin-istanbul": "^4.1.6",
+    "babel-plugin-istanbul": "^5.1.2",
     "babel-plugin-ramda": "^2.0.0",
     "babel-plugin-transform-imports": "^1.5.0",
     "bcrypt": "^3.0.4",
