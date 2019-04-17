@@ -1,7 +1,10 @@
+import * as R from 'ramda';
 import isDev from 'isdev';
 import { ApolloServer, gql } from 'apollo-server-express';
+import { prisma } from '../generated/prisma-client';
+import { sendMail } from '../utils';
 
-import { typeDefs, makeResolvers } from './schema.js';
+import { typeDefs, Resolvers } from './schema.js';
 import {
   typeDefs as emailTypeDefs,
   resolvers as emailResolvers,
@@ -12,6 +15,7 @@ const rootType = gql`
     Users: [User]
   }
 `;
+
 export default function graphql(app) {
   // The GraphQL schema in string form
 
@@ -23,8 +27,14 @@ export default function graphql(app) {
     ],
     resolvers: {
       ...emailResolvers,
-      ...makeResolvers(app),
+      ...Resolvers,
     },
+    context: ({ req }) => ({
+      req,
+      prisma,
+      get: R.bind(app.get, app),
+      sendMail,
+    }),
     playground: isDev,
     debug: isDev,
   });

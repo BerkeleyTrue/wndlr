@@ -1,8 +1,6 @@
 import { gql } from 'apollo-server-express';
 
 import { User, UserAuthentication as UserAuthen } from '../Models';
-import { sendMail } from '../utils';
-import { query, queryOne } from '../Data-Source';
 
 export const typeDefs = gql`
   ${User.gqlType}
@@ -18,15 +16,8 @@ export const typeDefs = gql`
   }
 `;
 
-export const makeResolvers = function(app) {
-  return {
-    Mutation: {
-      sendSignInEmail: UserAuthen.sendSignInEmail(
-        app.get('url'),
-        sendMail,
-        query,
-        queryOne,
-      ),
-    },
-  };
+export const Resolvers = {
+  Mutation: {
+    sendSignInEmail: UserAuthen.sendAuthenEmail,
+  },
 };
