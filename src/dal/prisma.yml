@@ -6,7 +6,3 @@ databaseType: document
 generate:
   - generator: javascript-client
     output: ../server/generated/prisma-client
-
-hooks:
-  post-deploy:
-    - prisma generate

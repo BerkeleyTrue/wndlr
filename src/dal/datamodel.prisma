@@ -9,13 +9,13 @@ type User {
   createdAt: DateTime! @createdAt
   updatedAt: DateTime! @updatedAt
 
-  authenTokens: [AuthenToken!]! @relation(name: "AuthenTokensByUser", link: INLINE, onDelete: CASCADE)
+  authenTokens: [AuthenToken!]! @relation(name: "AuthenTokensByUser", link: INLINE)
 }
 
 type AuthenToken {
   id: ID! @id
   token: String!
   ttl: Int!
-  createdAt: DateTime! @createAt
+  createdAt: DateTime! @createdAt
   user: User! @relation(name: "AuthenTokensByUser")
 }
