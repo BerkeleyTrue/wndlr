@@ -3,12 +3,10 @@ import createDebugger from 'debug';
 import dedent from 'dedent';
 import moment from 'moment';
 import { gql } from 'apollo-server-express';
-import { aql } from 'arangojs';
-import { defer, forkJoin, merge } from 'rxjs';
+import { of } from 'rxjs';
 import { normalizeEmail } from 'validator';
 import * as OP from 'rxjs/operators';
 
-import * as User from './User.js';
 import renderUserSignInMail from './user-sign-in.js';
 import renderUserSignUpMail from './user-sign-up.js';
 
@@ -63,13 +61,13 @@ export const createToken = R.pipe(
   })),
 );
 
-const sendWaitMessageForOldAuth = R.pipe(
-  OP.pluck('auth'),
-  OP.map(getWaitTime),
-  OP.map(createWaitMessage),
-  OP.map(message => ({ message })),
-  OP.tap(() => log('user exists has recent auth')),
-);
+// const sendWaitMessageForOldAuth = R.pipe(
+//   OP.pluck('auth'),
+//   OP.map(getWaitTime),
+//   OP.map(createWaitMessage),
+//   OP.map(message => ({ message })),
+//   OP.tap(() => log('user exists has recent auth')),
+// );
 
 // find user with normalized(email)
 // if no user, create one
@@ -88,29 +86,43 @@ export const sendAuthenEmail = (
   { email },
   { get, prisma, sendMail },
 ) => {
-  console.log('prisma: ', prisma.authenToken);
   const url = get('url');
+  const sendAuthMail = ({ email, guid, token, isSignUp }) => {
+    const renderText = isSignUp ?
+      renderUserSignUpMail :
+      renderUserSignInMail;
+
+    return sendMail({
+      to: email,
+      subject: isSignUp ? 'Sign Up' : 'Sign In',
+      text: renderText({
+        token,
+        guid,
+        url,
+      }),
+    });
+  };
   const normalizedEmail = normalizeEmail(email);
   const findUser = deferPromise(prisma.user.bind(prisma));
   const findAuth = deferPromise(prisma.authenToken.bind(prisma));
   const createUser = deferPromise(prisma.createUser.bind(prisma));
-  const updateUser = deferPromise(prisma.updateUser.bind(prisma));
+  // const updateUser = deferPromise(prisma.updateUser.bind(prisma));
 
   // email =>
-  R.pipe(
+  return R.pipe(
     normalizeEmail,
     // Email => Observable<User|Void>
     (normalizedEmail) => findUser({ normalizedEmail }),
     // Observable<User> => Observable<{ user: User|Void, auth: Auth|Void }>
-    OP.map(user =>
-      defer(() => findAuth({ user })).pipe(
+    OP.switchMap(user =>
+      user ? findAuth({ user }).pipe(
         OP.map(auth => ({ user, auth })),
-      ),
+      ) : of({ user }),
     ),
     // => [Observable<{ user: User, auth: Auth|Void }>, Observable<Void>]
     OP.partition(R.pipe(R.prop('user'), Boolean)),
     ([
-      userExists,
+      ,
       noUser,
     ]) => {
 
@@ -122,91 +134,106 @@ export const sendAuthenEmail = (
           authenTokens: {
             create: [ authenToken ],
           },
-        })),
+        }).pipe(OP.map(({ id, email }) => ({
+          email,
+          guid: id,
+          token: authenToken.token,
+          isSignUp: true,
+        })))),
+        OP.switchMap(sendAuthMail),
+        OP.tap((emailInfo) => log('emailInfo: ', emailInfo)),
+        OP.mapTo({
+          message: dedent`
+            Welcome! We've sent you a sign in email. Give it a few
+            seconds to arrive.
+          `,
+        }),
       )(noUser);
 
+      return createUserNAuth.toPromise();
+
       // Observable<{ user: User, auth: Auth|Void }>
-      const userNeedsNewAuth = R.pipe(
-        // => [
-        //  Observable<{ user: User, auth: Auth }>,
-        //  Observable<{ user: User, auth: Void}>
-        // ]
-        OP.partition(R.pipe(R.prop('auth'), Boolean)),
-        ([
-          // need token split this and check for expired auth before delete
-          userExistsHasExistingAuth,
-          userExistsHasNoAuth,
-        ]) => {
-          const [
-            userHasOldAuth,
-            userHasRecentAuth,
-          ] = OP.partition(R.pipe(
-            R.prop('auth'),
-            isAuthRecent
-          ))(userExistsHasExistingAuth);
+      // const userNeedsNewAuth = R.pipe(
+      //   // => [
+      //   //  Observable<{ user: User, auth: Auth }>,
+      //   //  Observable<{ user: User, auth: Void}>
+      //   // ]
+      //   OP.partition(R.pipe(R.prop('auth'), Boolean)),
+      //   ([
+      //     // need token split this and check for expired auth before delete
+      //     userExistsHasExistingAuth,
+      //     userExistsHasNoAuth,
+      //   ]) => {
+      //     const [
+      //       userHasOldAuth,
+      //       userHasRecentAuth,
+      //     ] = OP.partition(R.pipe(
+      //       R.prop('auth'),
+      //       isAuthRecent
+      //     ))(userExistsHasExistingAuth);
 
-          const userNeedsNewAuth = R.pipe(
-            // create token
-            OP.switchMap(({ user, auth }) =>
-              updateUser({
-                where: { id: user.id },
-                data: {
-                  authenTokens: {
-                    delete: { id: auth.id },
-                  },
-                },
-              }),
-            ),
-            OP.switchMap()
-          )(userHasOldAuth);
+      //     const userNeedsNewAuth = R.pipe(
+      //       // create token
+      //       OP.switchMap(({ user, auth }) =>
+      //         updateUser({
+      //           where: { id: user.id },
+      //           data: {
+      //             authenTokens: {
+      //               delete: { id: auth.id },
+      //             },
+      //           },
+      //         }),
+      //       ),
+      //       OP.switchMap()
+      //     )(userHasOldAuth);
 
-          const sendWaitMessage = sendWaitMessageForOldAuth(userHasRecentAuth);
+      // const sendWaitMessage = sendWaitMessageForOldAuth(userHasRecentAuth);
 
-          return merge(userNeedsNewAuth, userExistsHasNoAuth).pipe(
-            OP.switchMap((user) => createToken().pipe((token) => ({
-              guid: user.guid,
-              isSignUp: true,
-              token: token.token,
-            })))
-          );
-        },
-      )(userExists);
+      //     return merge(userNeedsNewAuth, userExistsHasNoAuth).pipe(
+      //       OP.switchMap((user) => createToken().pipe((token) => ({
+      //         guid: user.guid,
+      //         isSignUp: true,
+      //         token: token.token,
+      //       })))
+      //     );
+      //   },
+      // )(userExists);
     },
   )(email);
 
-  return merge(
-    sendWaitMessage,
-    R.pipe(
-      OP.switchMap(({ guid, token, isSignUp }) => {
-        const renderText = isSignUp ?
-          renderUserSignUpMail :
-          renderUserSignInMail;
+  // return merge(
+  //   sendWaitMessage,
+  //   R.pipe(
+  //     OP.switchMap(({ guid, token, isSignUp }) => {
+  //       const renderText = isSignUp ?
+  //         renderUserSignUpMail :
+  //         renderUserSignInMail;
 
-        return sendMail({
-          to: email,
-          subject: 'sign in',
-          text: renderText({
-            token,
-            guid,
-            url,
-          }),
-        });
-      }),
-      OP.tap(emailInfo => console.log('emailInfo: ', emailInfo)),
-      // sign in link sent
-      // send message to client app
-      OP.map(() => ({
-        message: dedent`
-          We found your existing account.
-          Check your email and click the sign in link we sent you.
-        `,
-      })),
-    )(
-      merge(
-        createUserAndAuth,
-        createAuthForUser,
-        deleteAndCreateNewAuthForUser,
-      ),
-    ),
-  ).toPromise();
+  //       return sendMail({
+  //         to: email,
+  //         subject: 'sign in',
+  //         text: renderText({
+  //           token,
+  //           guid,
+  //           url,
+  //         }),
+  //       });
+  //     }),
+  //     OP.tap(emailInfo => console.log('emailInfo: ', emailInfo)),
+  //     // sign in link sent
+  //     // send message to client app
+  //     OP.map(() => ({
+  //       message: dedent`
+  //         We found your existing account.
+  //         Check your email and click the sign in link we sent you.
+  //       `,
+  //     })),
+  //   )(
+  //     merge(
+  //       createUserAndAuth,
+  //       createAuthForUser,
+  //       deleteAndCreateNewAuthForUser,
+  //     ),
+  //   ),
+  // ).toPromise();
 };
