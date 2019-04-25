@@ -3,7 +3,7 @@ import createDebugger from 'debug';
 import dedent from 'dedent';
 import moment from 'moment';
 import { gql } from 'apollo-server-express';
-import { of } from 'rxjs';
+import { of, merge } from 'rxjs';
 import { normalizeEmail } from 'validator';
 import * as OP from 'rxjs/operators';
 
@@ -104,9 +104,12 @@ export const sendAuthenEmail = (
   };
   const normalizedEmail = normalizeEmail(email);
   const findUser = deferPromise(prisma.user.bind(prisma));
-  const findAuth = deferPromise(prisma.authenToken.bind(prisma));
+  const findAuths = deferPromise(prisma.authenTokens.bind(prisma));
   const createUser = deferPromise(prisma.createUser.bind(prisma));
-  // const updateUser = deferPromise(prisma.updateUser.bind(prisma));
+  const updateUser = deferPromise(prisma.updateUser.bind(prisma));
+  const createTokenForUser = deferPromise(
+    prisma.createAuthenToken.bind(prisma)
+  );
 
   // email =>
   return R.pipe(
@@ -115,18 +118,19 @@ export const sendAuthenEmail = (
     (normalizedEmail) => findUser({ normalizedEmail }),
     // Observable<User> => Observable<{ user: User|Void, auth: Auth|Void }>
     OP.switchMap(user =>
-      user ? findAuth({ user }).pipe(
+      user ? findAuths({ where: { user: { id: user.id } } }).pipe(
         OP.map(auth => ({ user, auth })),
       ) : of({ user }),
     ),
     // => [Observable<{ user: User, auth: Auth|Void }>, Observable<Void>]
     OP.partition(R.pipe(R.prop('user'), Boolean)),
     ([
-      ,
+      existingUser,
       noUser,
     ]) => {
 
       const createUserNAuth = R.pipe(
+        OP.tap(() => log('new user')),
         OP.switchMap(createToken),
         OP.switchMap((authenToken) => createUser({
           email,
@@ -141,7 +145,7 @@ export const sendAuthenEmail = (
           isSignUp: true,
         })))),
         OP.switchMap(sendAuthMail),
-        OP.tap((emailInfo) => log('emailInfo: ', emailInfo)),
+        // OP.tap((emailInfo) => log('emailInfo: ', emailInfo)),
         OP.mapTo({
           message: dedent`
             Welcome! We've sent you a sign in email. Give it a few
@@ -150,90 +154,81 @@ export const sendAuthenEmail = (
         }),
       )(noUser);
 
-      return createUserNAuth.toPromise();
-
       // Observable<{ user: User, auth: Auth|Void }>
-      // const userNeedsNewAuth = R.pipe(
-      //   // => [
-      //   //  Observable<{ user: User, auth: Auth }>,
-      //   //  Observable<{ user: User, auth: Void}>
-      //   // ]
-      //   OP.partition(R.pipe(R.prop('auth'), Boolean)),
-      //   ([
-      //     // need token split this and check for expired auth before delete
-      //     userExistsHasExistingAuth,
-      //     userExistsHasNoAuth,
-      //   ]) => {
-      //     const [
-      //       userHasOldAuth,
-      //       userHasRecentAuth,
-      //     ] = OP.partition(R.pipe(
-      //       R.prop('auth'),
-      //       isAuthRecent
-      //     ))(userExistsHasExistingAuth);
+      const handleExistingUser = R.pipe(
+        // => [
+        //  Observable<{ user: User, auth: Auth }>,
+        //  Observable<{ user: User, auth: Void}>
+        // ]
+        OP.tap(() => log('existing user')),
+        OP.partition(R.pipe(R.prop('auth'), Boolean)),
+        ([
+          // need token split this and check for expired auth before delete
+          hasExistingAuth,
+          hasNoAuth,
+        ]) => {
+          const handleNoToken = R.pipe(
+            OP.tap(() => log('no auth')),
+            OP.switchMap(({ user }) => createToken().pipe(
+              OP.switchMap((token) => createTokenForUser({
+                ...token,
+                user: { connect: { id: user.id } },
+              })),
+              OP.map((auth) => ({
+                email,
+                guid: user.id,
+                isSignUp: false,
+                token: auth.token,
+              })),
+              OP.switchMap(sendAuthMail),
+              OP.mapTo({
+                message: dedent`
+                  Sign in email is on it's way!
+                `,
+              })
+            )),
+          )(hasNoAuth);
 
-      //     const userNeedsNewAuth = R.pipe(
-      //       // create token
-      //       OP.switchMap(({ user, auth }) =>
-      //         updateUser({
-      //           where: { id: user.id },
-      //           data: {
-      //             authenTokens: {
-      //               delete: { id: auth.id },
-      //             },
-      //           },
-      //         }),
-      //       ),
-      //       OP.switchMap()
-      //     )(userHasOldAuth);
+          const [ userHasOldAuth ] = OP.partition(R.pipe(
+            R.prop('auth'),
+            isAuthRecent
+          ))(hasExistingAuth);
 
-      // const sendWaitMessage = sendWaitMessageForOldAuth(userHasRecentAuth);
+          const handleOldToken = R.pipe(
+            OP.tap(() => log('old token')),
+            // create token
+            OP.switchMap(({ user, auth }) => createToken().pipe(
+              OP.switchMap((newToken) => updateUser({
+                where: { id: user.id },
+                data: {
+                  authenTokens: {
+                    delete: auth.map((t) => ({ id: t.id })),
+                    create: [ newToken ],
+                  },
+                },
+              }).pipe(OP.mapTo({
+                guid: user.id,
+                token: newToken.token,
+                email,
+              }))),
+              OP.switchMap(sendAuthMail),
+              OP.mapTo({
+                message: `
+                  Sign in
+                `,
+              })
+            )),
+          )(userHasOldAuth);
 
-      //     return merge(userNeedsNewAuth, userExistsHasNoAuth).pipe(
-      //       OP.switchMap((user) => createToken().pipe((token) => ({
-      //         guid: user.guid,
-      //         isSignUp: true,
-      //         token: token.token,
-      //       })))
-      //     );
-      //   },
-      // )(userExists);
+          // const sendWaitMessage =
+          // sendWaitMessageForOldAuth(userHasRecentAuth);
+
+          return merge(handleNoToken, handleOldToken);
+        },
+      )(existingUser);
+
+      return merge(handleExistingUser, createUserNAuth);
     },
+    (obv) => obv.toPromise(),
   )(email);
-
-  // return merge(
-  //   sendWaitMessage,
-  //   R.pipe(
-  //     OP.switchMap(({ guid, token, isSignUp }) => {
-  //       const renderText = isSignUp ?
-  //         renderUserSignUpMail :
-  //         renderUserSignInMail;
-
-  //       return sendMail({
-  //         to: email,
-  //         subject: 'sign in',
-  //         text: renderText({
-  //           token,
-  //           guid,
-  //           url,
-  //         }),
-  //       });
-  //     }),
-  //     OP.tap(emailInfo => console.log('emailInfo: ', emailInfo)),
-  //     // sign in link sent
-  //     // send message to client app
-  //     OP.map(() => ({
-  //       message: dedent`
-  //         We found your existing account.
-  //         Check your email and click the sign in link we sent you.
-  //       `,
-  //     })),
-  //   )(
-  //     merge(
-  //       createUserAndAuth,
-  //       createAuthForUser,
-  //       deleteAndCreateNewAuthForUser,
-  //     ),
-  //   ),
-  // ).toPromise();
 };
