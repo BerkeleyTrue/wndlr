@@ -36,23 +36,25 @@ export const gqlType = gql`
   }
 `;
 
-const pluckCreatedOn = R.prop('createdOn');
+const pluckCreatedAt = R.prop('createdAt');
 const createResetMoment = () => moment().subtract(authResetTime, 'm');
 
 export const isAuthRecent = R.pipe(
-  pluckCreatedOn,
+  pluckCreatedAt,
   moment,
   createdOn => createdOn.isAfter(createResetMoment()),
 );
 
+// (Auth) => Number
 export const getWaitTime = R.pipe(
-  pluckCreatedOn,
+  pluckCreatedAt,
   moment,
   createdOn => createdOn.diff(createResetMoment()),
   moment.duration,
   dur => dur.minutes(),
 );
 
+// () => Observable<Token>
 export const createToken = R.pipe(
   authUtils.generateVerificationToken,
   OP.map(token => ({
@@ -61,13 +63,12 @@ export const createToken = R.pipe(
   })),
 );
 
-// const sendWaitMessageForOldAuth = R.pipe(
-//   OP.pluck('auth'),
-//   OP.map(getWaitTime),
-//   OP.map(createWaitMessage),
-//   OP.map(message => ({ message })),
-//   OP.tap(() => log('user exists has recent auth')),
-// );
+// (Observable<Auth>) => Observable<{ message: string }>
+const sendWaitMessageForOldAuth = R.pipe(
+  OP.map(getWaitTime),
+  OP.map(createWaitMessage),
+  OP.map(message => ({ message })),
+);
 
 // find user with normalized(email)
 // if no user, create one
@@ -114,15 +115,15 @@ export const sendAuthenEmail = (
   // email =>
   return R.pipe(
     normalizeEmail,
-    // Email => Observable<User|Void>
+    // => Observable<User|Void>
     (normalizedEmail) => findUser({ normalizedEmail }),
-    // Observable<User> => Observable<{ user: User|Void, auth: Auth|Void }>
+    // => Observable<{ user: User|Void, auth: Auth[]|Void }>
     OP.switchMap(user =>
       user ? findAuths({ where: { user: { id: user.id } } }).pipe(
         OP.map(auth => ({ user, auth })),
       ) : of({ user }),
     ),
-    // => [Observable<{ user: User, auth: Auth|Void }>, Observable<Void>]
+    // => [Observable<{ user: User, auth: Auth[]|Void }>, Observable<Void>]
     OP.partition(R.pipe(R.prop('user'), Boolean)),
     ([
       existingUser,
@@ -131,7 +132,9 @@ export const sendAuthenEmail = (
 
       const createUserNAuth = R.pipe(
         OP.tap(() => log('new user')),
+        // => Token
         OP.switchMap(createToken),
+        // => { email, guid, token, isSignUp }
         OP.switchMap((authenToken) => createUser({
           email,
           normalizedEmail,
@@ -154,13 +157,13 @@ export const sendAuthenEmail = (
         }),
       )(noUser);
 
-      // Observable<{ user: User, auth: Auth|Void }>
+      // Observable<{ user: User, auth: Auth[]|Void }>
       const handleExistingUser = R.pipe(
+        OP.tap(() => log('existing user')),
         // => [
-        //  Observable<{ user: User, auth: Auth }>,
+        //  Observable<{ user: User, auth: Auth[] }>,
         //  Observable<{ user: User, auth: Void}>
         // ]
-        OP.tap(() => log('existing user')),
         OP.partition(R.pipe(R.prop('auth'), Boolean)),
         ([
           // need token split this and check for expired auth before delete
@@ -189,9 +192,13 @@ export const sendAuthenEmail = (
             )),
           )(hasNoAuth);
 
-          const [ userHasOldAuth ] = OP.partition(R.pipe(
+          const [
+            hasRecentAuth,
+            hasOldAuth,
+          ] = OP.partition(R.pipe(
             R.prop('auth'),
-            isAuthRecent
+            R.head,
+            isAuthRecent,
           ))(hasExistingAuth);
 
           const handleOldToken = R.pipe(
@@ -218,12 +225,20 @@ export const sendAuthenEmail = (
                 `,
               })
             )),
-          )(userHasOldAuth);
+          )(hasOldAuth);
 
-          // const sendWaitMessage =
-          // sendWaitMessageForOldAuth(userHasRecentAuth);
+          const sendWaitMessage = R.pipe(
+            OP.tap(() => log('has recent auth')),
+            OP.pluck('auth'),
+            OP.map(R.head),
+            sendWaitMessageForOldAuth,
+          )(hasRecentAuth);
 
-          return merge(handleNoToken, handleOldToken);
+          return merge(
+            handleNoToken,
+            handleOldToken,
+            sendWaitMessage,
+          );
         },
       )(existingUser);
 
