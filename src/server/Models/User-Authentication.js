@@ -71,39 +71,34 @@ const sendWaitMessageForOldAuth = R.pipe(
   OP.map(message => ({ message })),
 );
 
-// find user with normalized(email)
-// if no user, create one
-// if user has token and token ttl is live
-//   return wait message
-// else
-//   create token
-//     ttl (15 min)
-//     created: Date
-//     token: guid
-//   encode emailj
-//   send email
-//   return message
+export const createMailSender = (url, sendMail) => ({
+  email,
+  guid,
+  token,
+  isSignUp,
+}) => {
+  const renderText = isSignUp ?
+    renderUserSignUpMail :
+    renderUserSignInMail;
+
+  return sendMail({
+    to: email,
+    subject: isSignUp ? 'Sign Up' : 'Sign In',
+    text: renderText({
+      token,
+      guid,
+      url,
+    }),
+  });
+};
+
 export const sendAuthenEmail = (
   parent,
   { email },
   { get, prisma, sendMail },
 ) => {
   const url = get('url');
-  const sendAuthMail = ({ email, guid, token, isSignUp }) => {
-    const renderText = isSignUp ?
-      renderUserSignUpMail :
-      renderUserSignInMail;
-
-    return sendMail({
-      to: email,
-      subject: isSignUp ? 'Sign Up' : 'Sign In',
-      text: renderText({
-        token,
-        guid,
-        url,
-      }),
-    });
-  };
+  const sendAuthMail = createMailSender(url, sendMail);
   const normalizedEmail = normalizeEmail(email);
   const findUser = deferPromise(prisma.user.bind(prisma));
   const findAuths = deferPromise(prisma.authenTokens.bind(prisma));
