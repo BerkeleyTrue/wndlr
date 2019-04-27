@@ -77,9 +77,7 @@ export const createMailSender = (url, sendMail) => ({
   token,
   isSignUp,
 }) => {
-  const renderText = isSignUp ?
-    renderUserSignUpMail :
-    renderUserSignInMail;
+  const renderText = isSignUp ? renderUserSignUpMail : renderUserSignInMail;
 
   return sendMail({
     to: email,
@@ -105,44 +103,54 @@ export const sendAuthenEmail = (
   const createUser = deferPromise(prisma.createUser.bind(prisma));
   const updateUser = deferPromise(prisma.updateUser.bind(prisma));
   const createTokenForUser = deferPromise(
-    prisma.createAuthenToken.bind(prisma)
+    prisma.createAuthenToken.bind(prisma),
   );
 
   // email =>
   return R.pipe(
     normalizeEmail,
     // => Observable<User|Void>
-    (normalizedEmail) => findUser({ normalizedEmail }),
+    normalizedEmail => findUser({ normalizedEmail }),
     // => Observable<{ user: User|Void, auth: Auth[]|Void }>
     OP.switchMap(user =>
-      user ? findAuths({ where: { user: { id: user.id } } }).pipe(
-        OP.map(auth => ({ user, auth })),
-      ) : of({ user }),
+      user ?
+        findAuths({ where: { user: { id: user.id } } }).pipe(
+          OP.map(auth => ({ user, auth })),
+        ) :
+        of({ user }),
     ),
     // => [Observable<{ user: User, auth: Auth[]|Void }>, Observable<Void>]
-    OP.partition(R.pipe(R.prop('user'), Boolean)),
+    OP.partition(
+      R.pipe(
+        R.prop('user'),
+        Boolean,
+      ),
+    ),
     ([
       existingUser,
       noUser,
     ]) => {
-
       const handleNewUser = R.pipe(
         OP.tap(() => log('new user')),
         // => Token
         OP.switchMap(createToken),
         // => { email, guid, token, isSignUp }
-        OP.switchMap((authenToken) => createUser({
-          email,
-          normalizedEmail,
-          authenTokens: {
-            create: [ authenToken ],
-          },
-        }).pipe(OP.map(({ id, email }) => ({
-          email,
-          guid: id,
-          token: authenToken.token,
-          isSignUp: true,
-        })))),
+        OP.switchMap(authenToken =>
+          createUser({
+            email,
+            normalizedEmail,
+            authenTokens: {
+              create: [ authenToken ],
+            },
+          }).pipe(
+            OP.map(({ id, email }) => ({
+              email,
+              guid: id,
+              token: authenToken.token,
+              isSignUp: true,
+            })),
+          ),
+        ),
         OP.switchMap(sendAuthMail),
         // OP.tap((emailInfo) => log('emailInfo: ', emailInfo)),
         OP.mapTo({
@@ -160,7 +168,13 @@ export const sendAuthenEmail = (
         //  Observable<{ user: User, auth: Auth[] }>,
         //  Observable<{ user: User, auth: Void}>
         // ]
-        OP.partition(R.pipe(R.prop('auth'), R.isEmpty, R.not)),
+        OP.partition(
+          R.pipe(
+            R.prop('auth'),
+            R.isEmpty,
+            R.not,
+          ),
+        ),
         ([
           // need token split this and check for expired auth before delete
           hasExistingAuth,
@@ -172,21 +186,25 @@ export const sendAuthenEmail = (
             OP.switchMap(([
               { user },
               token,
-            ]) => createTokenForUser({
-              ...token,
-              user: { connect: { id: user.id } },
-            }).pipe(OP.map((auth) => ({
-              email,
-              guid: user.id,
-              isSignUp: false,
-              token: auth.token,
-            })))),
+            ]) =>
+              createTokenForUser({
+                ...token,
+                user: { connect: { id: user.id } },
+              }).pipe(
+                OP.map(auth => ({
+                  email,
+                  guid: user.id,
+                  isSignUp: false,
+                  token: auth.token,
+                })),
+              ),
+            ),
             OP.switchMap(sendAuthMail),
             OP.mapTo({
               message: dedent`
                 Sign in email is on it's way!
               `,
-            })
+            }),
           )(hasNoAuth);
 
           const handleExistingAuth = R.pipe(
@@ -194,7 +212,13 @@ export const sendAuthenEmail = (
             //  Observable<{ user: User, auth: Auth[] }>,
             //  Observable<{ user: User, auth: Auth[] }>
             // ]
-            OP.partition(R.pipe(R.prop('auth'), R.head, isAuthRecent)),
+            OP.partition(
+              R.pipe(
+                R.prop('auth'),
+                R.head,
+                isAuthRecent,
+              ),
+            ),
             ([
               hasRecentAuth,
               hasOldAuth,
@@ -206,25 +230,29 @@ export const sendAuthenEmail = (
                 OP.switchMap(([
                   { user, auth },
                   newToken,
-                ]) => updateUser({
-                  where: { id: user.id },
-                  data: {
-                    authenTokens: {
-                      delete: auth.map((t) => ({ id: t.id })),
-                      create: [ newToken ],
+                ]) =>
+                  updateUser({
+                    where: { id: user.id },
+                    data: {
+                      authenTokens: {
+                        delete: auth.map(t => ({ id: t.id })),
+                        create: [ newToken ],
+                      },
                     },
-                  },
-                }).pipe(OP.mapTo({
-                  guid: user.id,
-                  token: newToken.token,
-                  email,
-                }))),
+                  }).pipe(
+                    OP.mapTo({
+                      guid: user.id,
+                      token: newToken.token,
+                      email,
+                    }),
+                  ),
+                ),
                 OP.switchMap(sendAuthMail),
                 OP.mapTo({
                   message: `
                     Sign in
                   `,
-                })
+                }),
               )(hasOldAuth);
 
               const handleRecentAuth = R.pipe(
@@ -234,10 +262,7 @@ export const sendAuthenEmail = (
                 sendWaitMessageForOldAuth,
               )(hasRecentAuth);
 
-              return merge(
-                handleOldToken,
-                handleRecentAuth,
-              );
+              return merge(handleOldToken, handleRecentAuth);
             },
           )(hasExistingAuth);
 
@@ -247,7 +272,7 @@ export const sendAuthenEmail = (
 
       return merge(handleExistingUser, handleNewUser);
     },
-    OP.tap(() => {}, (err) => console.error(err)),
-    (obv) => obv.toPromise(),
+    OP.tap(() => {}, err => console.error(err)),
+    obv => obv.toPromise(),
   )(email);
 };

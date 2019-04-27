@@ -58,20 +58,24 @@ describe('createMailSender', () => {
   });
 
   test('should call sendMail', () => {
-    const sendMail = jest.fn((x) => x);
+    const sendMail = jest.fn(x => x);
     const sendAuthMail = UserAthen.createMailSender('foo', sendMail);
-    expect(sendAuthMail({
-      email: 'Foo',
-      guid: '1234',
-      token: 'asdf',
-      isSignUp: true,
-    })).toMatchSnapshot();
+    expect(
+      sendAuthMail({
+        email: 'Foo',
+        guid: '1234',
+        token: 'asdf',
+        isSignUp: true,
+      }),
+    ).toMatchSnapshot();
 
-    expect(sendAuthMail({
-      email: 'Foo',
-      guid: '1234',
-      token: 'asdf',
-      isSignUp: false,
-    })).toMatchSnapshot();
+    expect(
+      sendAuthMail({
+        email: 'Foo',
+        guid: '1234',
+        token: 'asdf',
+        isSignUp: false,
+      }),
+    ).toMatchSnapshot();
   });
 });
