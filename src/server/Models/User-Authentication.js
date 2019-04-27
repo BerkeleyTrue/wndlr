@@ -39,6 +39,7 @@ export const gqlType = gql`
 const pluckCreatedAt = R.prop('createdAt');
 const createResetMoment = () => moment().subtract(authResetTime, 'm');
 
+// (Auth) => Boolean
 export const isAuthRecent = R.pipe(
   pluckCreatedAt,
   moment,
@@ -164,7 +165,7 @@ export const sendAuthenEmail = (
         //  Observable<{ user: User, auth: Auth[] }>,
         //  Observable<{ user: User, auth: Void}>
         // ]
-        OP.partition(R.pipe(R.prop('auth'), Boolean)),
+        OP.partition(R.pipe(R.prop('auth'), R.isEmpty, R.not)),
         ([
           // need token split this and check for expired auth before delete
           hasExistingAuth,
@@ -172,24 +173,25 @@ export const sendAuthenEmail = (
         ]) => {
           const handleNoAuth = R.pipe(
             OP.tap(() => log('no auth')),
-            OP.switchMap(({ user }) => createToken().pipe(
-              OP.switchMap((token) => createTokenForUser({
-                ...token,
-                user: { connect: { id: user.id } },
-              })),
-              OP.map((auth) => ({
-                email,
-                guid: user.id,
-                isSignUp: false,
-                token: auth.token,
-              })),
-              OP.switchMap(sendAuthMail),
-              OP.mapTo({
-                message: dedent`
-                  Sign in email is on it's way!
-                `,
-              })
-            )),
+            OP.withLatestFrom(createToken()),
+            OP.switchMap(([
+              { user },
+              token,
+            ]) => createTokenForUser({
+              ...token,
+              user: { connect: { id: user.id } },
+            }).pipe(OP.map((auth) => ({
+              email,
+              guid: user.id,
+              isSignUp: false,
+              token: auth.token,
+            })))),
+            OP.switchMap(sendAuthMail),
+            OP.mapTo({
+              message: dedent`
+                Sign in email is on it's way!
+              `,
+            })
           )(hasNoAuth);
 
           const handleExistingAuth = R.pipe(
@@ -205,27 +207,29 @@ export const sendAuthenEmail = (
               const handleOldToken = R.pipe(
                 OP.tap(() => log('old token')),
                 // create token
-                OP.switchMap(({ user, auth }) => createToken().pipe(
-                  OP.switchMap((newToken) => updateUser({
-                    where: { id: user.id },
-                    data: {
-                      authenTokens: {
-                        delete: auth.map((t) => ({ id: t.id })),
-                        create: [ newToken ],
-                      },
+                OP.withLatestFrom(createToken()),
+                OP.switchMap(([
+                  { user, auth },
+                  newToken,
+                ]) => updateUser({
+                  where: { id: user.id },
+                  data: {
+                    authenTokens: {
+                      delete: auth.map((t) => ({ id: t.id })),
+                      create: [ newToken ],
                     },
-                  }).pipe(OP.mapTo({
-                    guid: user.id,
-                    token: newToken.token,
-                    email,
-                  }))),
-                  OP.switchMap(sendAuthMail),
-                  OP.mapTo({
-                    message: `
-                      Sign in
-                    `,
-                  })
-                )),
+                  },
+                }).pipe(OP.mapTo({
+                  guid: user.id,
+                  token: newToken.token,
+                  email,
+                }))),
+                OP.switchMap(sendAuthMail),
+                OP.mapTo({
+                  message: `
+                    Sign in
+                  `,
+                })
               )(hasOldAuth);
 
               const handleRecentAuth = R.pipe(
