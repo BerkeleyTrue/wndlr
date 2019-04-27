@@ -130,7 +130,7 @@ export const sendAuthenEmail = (
       noUser,
     ]) => {
 
-      const createUserNAuth = R.pipe(
+      const handleNewUser = R.pipe(
         OP.tap(() => log('new user')),
         // => Token
         OP.switchMap(createToken),
@@ -170,7 +170,7 @@ export const sendAuthenEmail = (
           hasExistingAuth,
           hasNoAuth,
         ]) => {
-          const handleNoToken = R.pipe(
+          const handleNoAuth = R.pipe(
             OP.tap(() => log('no auth')),
             OP.switchMap(({ user }) => createToken().pipe(
               OP.switchMap((token) => createTokenForUser({
@@ -192,58 +192,63 @@ export const sendAuthenEmail = (
             )),
           )(hasNoAuth);
 
-          const [
-            hasRecentAuth,
-            hasOldAuth,
-          ] = OP.partition(R.pipe(
-            R.prop('auth'),
-            R.head,
-            isAuthRecent,
-          ))(hasExistingAuth);
+          const handleExistingAuth = R.pipe(
+            // => [
+            //  Observable<{ user: User, auth: Auth[] }>,
+            //  Observable<{ user: User, auth: Auth[] }>
+            // ]
+            OP.partition(R.pipe(R.prop('auth'), R.head, isAuthRecent)),
+            ([
+              hasRecentAuth,
+              hasOldAuth,
+            ]) => {
+              const handleOldToken = R.pipe(
+                OP.tap(() => log('old token')),
+                // create token
+                OP.switchMap(({ user, auth }) => createToken().pipe(
+                  OP.switchMap((newToken) => updateUser({
+                    where: { id: user.id },
+                    data: {
+                      authenTokens: {
+                        delete: auth.map((t) => ({ id: t.id })),
+                        create: [ newToken ],
+                      },
+                    },
+                  }).pipe(OP.mapTo({
+                    guid: user.id,
+                    token: newToken.token,
+                    email,
+                  }))),
+                  OP.switchMap(sendAuthMail),
+                  OP.mapTo({
+                    message: `
+                      Sign in
+                    `,
+                  })
+                )),
+              )(hasOldAuth);
 
-          const handleOldToken = R.pipe(
-            OP.tap(() => log('old token')),
-            // create token
-            OP.switchMap(({ user, auth }) => createToken().pipe(
-              OP.switchMap((newToken) => updateUser({
-                where: { id: user.id },
-                data: {
-                  authenTokens: {
-                    delete: auth.map((t) => ({ id: t.id })),
-                    create: [ newToken ],
-                  },
-                },
-              }).pipe(OP.mapTo({
-                guid: user.id,
-                token: newToken.token,
-                email,
-              }))),
-              OP.switchMap(sendAuthMail),
-              OP.mapTo({
-                message: `
-                  Sign in
-                `,
-              })
-            )),
-          )(hasOldAuth);
+              const handleRecentAuth = R.pipe(
+                OP.tap(() => log('has recent auth')),
+                OP.pluck('auth'),
+                OP.map(R.head),
+                sendWaitMessageForOldAuth,
+              )(hasRecentAuth);
 
-          const sendWaitMessage = R.pipe(
-            OP.tap(() => log('has recent auth')),
-            OP.pluck('auth'),
-            OP.map(R.head),
-            sendWaitMessageForOldAuth,
-          )(hasRecentAuth);
+              return merge(
+                handleOldToken,
+                handleRecentAuth,
+              );
+            },
+          )(hasExistingAuth);
 
-          return merge(
-            handleNoToken,
-            handleOldToken,
-            sendWaitMessage,
-          );
+          return merge(handleExistingAuth, handleNoAuth);
         },
       )(existingUser);
 
-      return merge(handleExistingUser, createUserNAuth);
+      return merge(handleExistingUser, handleNewUser);
     },
+    OP.tap(() => {}, (err) => console.error(err)),
     (obv) => obv.toPromise(),
   )(email);
 };
