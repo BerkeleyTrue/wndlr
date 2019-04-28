@@ -15,7 +15,7 @@ before_install:
   - docker-compose up -d
   - if [[ `npm -v` != 6* ]]; then npm install -g npm@6; fi
   - npm install -g greenkeeper-lockfile
-  - npm run deploy
+  - npm run prisma:deploy
 
 install:
   - node travis-install.js
