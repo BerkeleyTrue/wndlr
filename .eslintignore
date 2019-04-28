@@ -3,3 +3,4 @@ dist
 coverage
 !.babelrc.js
 flow-typed/npm
+**/generated

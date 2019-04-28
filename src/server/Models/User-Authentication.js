@@ -2,27 +2,29 @@ import * as R from 'ramda';
 import createDebugger from 'debug';
 import dedent from 'dedent';
 import moment from 'moment';
-import { aql } from 'arangojs';
-import { forkJoin, merge } from 'rxjs';
+import { gql } from 'apollo-server-express';
+import { of, merge } from 'rxjs';
 import { normalizeEmail } from 'validator';
-import { pluck, partition, tap, switchMap, map, mapTo } from 'rxjs/operators';
+import * as OP from 'rxjs/operators';
 
-import * as User from './User.js';
 import renderUserSignInMail from './user-sign-in.js';
 import renderUserSignUpMail from './user-sign-up.js';
-import { authUtils } from '../utils';
+
+import { deferPromise, authUtils } from '../utils';
 
 const log = createDebugger('wndlr:server:Models:UserAuthentication');
+
 const createWaitMessage = timeTillAuthReset => dedent`
 Please wait at least ${timeTillAuthReset} minute${
   timeTillAuthReset > 1 ? 's' : ''
 } for the sign in email to arrive
   before requesting a new one.
 `;
-export const ttl15Min = 15 * 60 * 1000;
+
+export const ttl = moment.duration(15, 'minutes').asMilliseconds();
 export const authResetTime = 5;
 
-export const gqlType = `
+export const gqlType = gql`
   """
   User Authentication Document:
   Relates to a user who is attempting to sign in or sign up.
@@ -34,271 +36,243 @@ export const gqlType = `
   }
 `;
 
-const pluckCreatedOn = R.prop('createdOn');
+const pluckCreatedAt = R.prop('createdAt');
 const createResetMoment = () => moment().subtract(authResetTime, 'm');
 
+// (Auth) => Boolean
 export const isAuthRecent = R.pipe(
-  pluckCreatedOn,
+  pluckCreatedAt,
   moment,
   createdOn => createdOn.isAfter(createResetMoment()),
 );
 
+// (Auth) => Number
 export const getWaitTime = R.pipe(
-  pluckCreatedOn,
+  pluckCreatedAt,
   moment,
   createdOn => createdOn.diff(createResetMoment()),
   moment.duration,
   dur => dur.minutes(),
 );
 
+// () => Observable<Token>
 export const createToken = R.pipe(
   authUtils.generateVerificationToken,
-  map(token => ({
+  OP.map(token => ({
     token,
-    ttl: ttl15Min,
-    createdOn: Date.now(),
+    ttl: ttl,
   })),
 );
 
-export const internals = {
-  queryUserNAuth: (queryOne, email) =>
-    queryOne(
-      aql`
-        LET user = First(
-          FOR user IN users
-            FILTER user.normalizedEmail == ${email}
-            LIMIT 1
-            RETURN user
-        )
+// (Observable<Auth>) => Observable<{ message: string }>
+const sendWaitMessageForOldAuth = R.pipe(
+  OP.map(getWaitTime),
+  OP.map(createWaitMessage),
+  OP.map(message => ({ message })),
+);
 
-        LET auth = !IS_NULL(user) ? FIRST(
-          FOR auth
-            IN 1..1
-            OUTBOUND user._id
-            userToAuthentication
-              RETURN auth
-        ) : NULL
+export const createMailSender = (url, sendMail) => ({
+  email,
+  guid,
+  token,
+  isSignUp,
+}) => {
+  const renderText = isSignUp ? renderUserSignUpMail : renderUserSignInMail;
 
-        RETURN { user, auth }
-      `,
-    ),
-  createUserAndAuth: (queryOne, email, noUser) =>
-    noUser.pipe(
-      switchMap(() => forkJoin(User.createNewUser(email), createToken())),
-      switchMap(([
-        user,
-        auth,
-      ]) =>
-        queryOne(
-          aql`
-            // create user and authen
-            INSERT ${user} INTO users
-
-            // store new user
-            LET user = NEW
-
-            INSERT ${auth} INTO userAuthentications
-
-            // store new doc
-            LET auth = NEW
-
-            // create edge to user
-            INSERT {
-              _from: user._id,
-              _to: auth._id
-            } INTO userToAuthentication
-          `,
-        ).pipe(mapTo({ token: auth.token, guid: user.guid, isSignUp: true })),
-      ),
-      tap(() => log('new user')),
-    ),
-  createAuthForUser: (queryOne, userExistsHasNoAuth) =>
-    userExistsHasNoAuth.pipe(
-      switchMap(({ user }) =>
-        createToken().pipe(
-          switchMap(auth =>
-            queryOne(
-              aql`
-              // create authen
-              INSERT ${auth} INTO userAuthentications
-
-              // store new doc
-              LET auth = NEW
-
-              // create edge to user
-              INSERT {
-                _from: ${user._id},
-                _to: auth._id
-              } INTO userToAuthentication
-            `,
-            ).pipe(
-              mapTo({
-                token: auth.token,
-                guid: user.guid,
-                isSignUp: false,
-              }),
-            ),
-          ),
-          tap(() => log('user exists, has no auth')),
-        ),
-      ),
-    ),
-  deleteAndCreateNewAuthForUser: (query, queryOne, userExistsHasOutdatedAuth) =>
-    userExistsHasOutdatedAuth.pipe(
-      switchMap(({ user, auth }) =>
-        queryOne(
-          aql`
-          WITH userAuthentications, userToAuthentication
-
-          LET authEdges = (
-            FOR v, e
-              IN 1..1
-              INBOUND ${auth._id}
-              GRAPH 'userSignInAttempt'
-                REMOVE e IN userToAuthentication
-          )
-
-          REMOVE { "_key": ${auth._key} } IN userAuthentications
-        `,
-        ).pipe(
-          switchMap(() =>
-            createToken().pipe(
-              switchMap(auth =>
-                query(
-                  aql`
-                  // create new authen
-                  INSERT ${auth} INTO userAuthentications
-
-                  // store new doc
-                  LET auth = NEW
-
-                  // create edge to user
-                  INSERT {
-                    _from: ${user._id},
-                    _to: auth._id
-                  } INTO userToAuthentication
-                `,
-                ).pipe(
-                  mapTo({
-                    token: auth.token,
-                    guid: user.guid,
-                    isSignUp: false,
-                  }),
-                ),
-              ),
-            ),
-          ),
-        ),
-      ),
-      tap(() => log('user exists, has old auth')),
-    ),
+  return sendMail({
+    to: email,
+    subject: isSignUp ? 'Sign Up' : 'Sign In',
+    text: renderText({
+      token,
+      guid,
+      url,
+    }),
+  });
 };
 
-// find user with normalized(email)
-// if no user, create one
-// if user has token and token ttl is live
-//   return wait message
-// else
-//   create token
-//     ttl (15 min)
-//     created: Date
-//     token: guid
-//   encode emailj
-//   send email
-//   return message
-export const sendSignInEmail = (url, sendMail, query, queryOne) => (
-  root,
+export const sendAuthenEmail = (
+  parent,
   { email },
+  { get, prisma, sendMail },
 ) => {
-  const queryUserNAuth = internals.queryUserNAuth(
-    queryOne,
-    normalizeEmail(email),
+  const url = get('url');
+  const sendAuthMail = createMailSender(url, sendMail);
+  const normalizedEmail = normalizeEmail(email);
+  const findUser = deferPromise(prisma.user.bind(prisma));
+  const findAuths = deferPromise(prisma.authenTokens.bind(prisma));
+  const createUser = deferPromise(prisma.createUser.bind(prisma));
+  const updateUser = deferPromise(prisma.updateUser.bind(prisma));
+  const createTokenForUser = deferPromise(
+    prisma.createAuthenToken.bind(prisma),
   );
 
-  const [
-    userExists,
-    noUser,
-  ] = partition(R.prop('user'), Boolean)(
-    queryUserNAuth,
-  );
-
-  const [
-    userExistsHasOldAuth,
-    userExistsHasNoAuth,
-  ] = partition(
-    R.prop('auth'),
-    Boolean,
-  )(userExists);
-
-  const [
-    userExistsAndHasRecentAuth,
-    userExistsHasOutdatedAuth,
-  ] = R.pipe(
-    partition(
+  // email =>
+  return R.pipe(
+    normalizeEmail,
+    // => Observable<User|Void>
+    normalizedEmail => findUser({ normalizedEmail }),
+    // => Observable<{ user: User|Void, auth: Auth[]|Void }>
+    OP.switchMap(user =>
+      user ?
+        findAuths({ where: { user: { id: user.id } } }).pipe(
+          OP.map(auth => ({ user, auth })),
+        ) :
+        of({ user }),
+    ),
+    // => [Observable<{ user: User, auth: Auth[]|Void }>, Observable<Void>]
+    OP.partition(
       R.pipe(
-        R.prop('auth'),
-        isAuthRecent,
+        R.prop('user'),
+        Boolean,
       ),
     ),
-  )(userExistsHasOldAuth);
+    ([
+      existingUser,
+      noUser,
+    ]) => {
+      const handleNewUser = R.pipe(
+        OP.tap(() => log('new user')),
+        // => Token
+        OP.switchMap(createToken),
+        // => { email, guid, token, isSignUp }
+        OP.switchMap(authenToken =>
+          createUser({
+            email,
+            normalizedEmail,
+            authenTokens: {
+              create: [ authenToken ],
+            },
+          }).pipe(
+            OP.map(({ id, email }) => ({
+              email,
+              guid: id,
+              token: authenToken.token,
+              isSignUp: true,
+            })),
+          ),
+        ),
+        OP.switchMap(sendAuthMail),
+        // OP.tap((emailInfo) => log('emailInfo: ', emailInfo)),
+        OP.mapTo({
+          message: dedent`
+            Welcome! We've sent you a sign in email. Give it a few
+            seconds to arrive.
+          `,
+        }),
+      )(noUser);
 
-  const createUserAndAuth = internals.createUserAndAuth(
-    queryOne,
-    email,
-    noUser,
-  );
+      // Observable<{ user: User, auth: Auth[]|Void }>
+      const handleExistingUser = R.pipe(
+        OP.tap(() => log('existing user')),
+        // => [
+        //  Observable<{ user: User, auth: Auth[] }>,
+        //  Observable<{ user: User, auth: Void}>
+        // ]
+        OP.partition(
+          R.pipe(
+            R.prop('auth'),
+            R.isEmpty,
+            R.not,
+          ),
+        ),
+        ([
+          // need token split this and check for expired auth before delete
+          hasExistingAuth,
+          hasNoAuth,
+        ]) => {
+          const handleNoAuth = R.pipe(
+            OP.tap(() => log('no auth')),
+            OP.withLatestFrom(createToken()),
+            OP.switchMap(([
+              { user },
+              token,
+            ]) =>
+              createTokenForUser({
+                ...token,
+                user: { connect: { id: user.id } },
+              }).pipe(
+                OP.map(auth => ({
+                  email,
+                  guid: user.id,
+                  isSignUp: false,
+                  token: auth.token,
+                })),
+              ),
+            ),
+            OP.switchMap(sendAuthMail),
+            OP.mapTo({
+              message: dedent`
+                Sign in email is on it's way!
+              `,
+            }),
+          )(hasNoAuth);
 
-  const createAuthForUser = internals.createAuthForUser(
-    queryOne,
-    userExistsHasNoAuth,
-  );
+          const handleExistingAuth = R.pipe(
+            // => [
+            //  Observable<{ user: User, auth: Auth[] }>,
+            //  Observable<{ user: User, auth: Auth[] }>
+            // ]
+            OP.partition(
+              R.pipe(
+                R.prop('auth'),
+                R.head,
+                isAuthRecent,
+              ),
+            ),
+            ([
+              hasRecentAuth,
+              hasOldAuth,
+            ]) => {
+              const handleOldToken = R.pipe(
+                OP.tap(() => log('old token')),
+                // create token
+                OP.withLatestFrom(createToken()),
+                OP.switchMap(([
+                  { user, auth },
+                  newToken,
+                ]) =>
+                  updateUser({
+                    where: { id: user.id },
+                    data: {
+                      authenTokens: {
+                        delete: auth.map(t => ({ id: t.id })),
+                        create: [ newToken ],
+                      },
+                    },
+                  }).pipe(
+                    OP.mapTo({
+                      guid: user.id,
+                      token: newToken.token,
+                      email,
+                    }),
+                  ),
+                ),
+                OP.switchMap(sendAuthMail),
+                OP.mapTo({
+                  message: `
+                    Sign in
+                  `,
+                }),
+              )(hasOldAuth);
 
-  const sendWaitMessage = R.pipe(
-    pluck('auth'),
-    map(getWaitTime),
-    map(createWaitMessage),
-    map(message => ({ message })),
-    tap(() => log('user exists has recent auth')),
-  )(userExistsAndHasRecentAuth);
+              const handleRecentAuth = R.pipe(
+                OP.tap(() => log('has recent auth')),
+                OP.pluck('auth'),
+                OP.map(R.head),
+                sendWaitMessageForOldAuth,
+              )(hasRecentAuth);
 
-  const deleteAndCreateNewAuthForUser = internals.deleteAndCreateNewAuthForUser(
-    query,
-    queryOne,
-    userExistsHasOutdatedAuth,
-  );
+              return merge(handleOldToken, handleRecentAuth);
+            },
+          )(hasExistingAuth);
 
-  return merge(
-    sendWaitMessage,
-    R.pipe(
-      switchMap(({ guid, token, isSignUp }) => {
-        const renderText = isSignUp ?
-          renderUserSignUpMail :
-          renderUserSignInMail;
-        return sendMail({
-          to: email,
-          subject: 'sign in',
-          text: renderText({
-            token,
-            guid,
-            url,
-          }),
-        });
-      }),
-      tap(emailInfo => console.log('emailInfo: ', emailInfo)),
-      // sign in link sent
-      // send message to client app
-      map(() => ({
-        message: dedent`
-          We found your existing account.
-          Check your email and click the sign in link we sent you.
-        `,
-      })),
-    )(
-      merge(
-        createUserAndAuth,
-        createAuthForUser,
-        deleteAndCreateNewAuthForUser,
-      ),
-    ),
-  ).toPromise();
+          return merge(handleExistingAuth, handleNoAuth);
+        },
+      )(existingUser);
+
+      return merge(handleExistingUser, handleNewUser);
+    },
+    OP.tap(() => {}, err => console.error(err)),
+    obv => obv.toPromise(),
+  )(email);
 };

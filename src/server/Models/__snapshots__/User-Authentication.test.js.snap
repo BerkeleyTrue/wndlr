@@ -1,150 +1,37 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`sendSignInEmail internals createAuthForUser queries with old user 1`] = `
+exports[`createMailSender should call sendMail 1`] = `
 Object {
-  "guid": "asdf",
-  "isSignUp": false,
-  "token": Any<String>,
+  "subject": "Sign Up",
+  "text": "Welcome to the WNDRL community!
+
+We have created a new account for you.
+
+Here's your sign in link. It will instantly sign you into WNDLR.com - no password necessary:
+
+foo/passwordless-auth?email=1234&token=asdf
+
+Note: this sign in link will expire after 15 minutes. If you need a new sign in link, go to foo/signin
+
+See you soon!
+
+- The WNDLR Team",
+  "to": "Foo",
 }
 `;
 
-exports[`sendSignInEmail internals createAuthForUser queries with old user 2`] = `
+exports[`createMailSender should call sendMail 2`] = `
 Object {
-  "createdOn": Any<Number>,
-  "token": Any<String>,
-  "ttl": 900000,
-}
-`;
+  "subject": "Sign In",
+  "text": "Here's your sign in link. It will instantly sign you into WNDLR.com - no password necessary:
 
-exports[`sendSignInEmail internals createUserAndAuth queries using user and auth token 1`] = `
-Object {
-  "createdOn": Any<Number>,
-  "email": "foo@dope.business",
-  "guid": Any<String>,
-  "isEmailVerified": false,
-  "lastUpdatedOn": Any<Number>,
-  "normalizedEmail": "foo@dope.business",
-}
-`;
+foo/passwordless-auth?guid=1234&token=asdf
 
-exports[`sendSignInEmail internals createUserAndAuth queries using user and auth token 2`] = `
-Object {
-  "createdOn": Any<Number>,
-  "token": Any<String>,
-  "ttl": 900000,
-}
-`;
+Note: this sign in link will expire after 15 minutes. If you need a new sign in link, go to foo/sign-in
 
-exports[`sendSignInEmail internals createUserAndAuth queries using user and auth token 3`] = `
-"
-            // create user and authen
-            INSERT @value0 INTO users
+See you soon!
 
-            // store new user
-            LET user = NEW
-
-            INSERT @value1 INTO userAuthentications
-
-            // store new doc
-            LET auth = NEW
-
-            // create edge to user
-            INSERT {
-              _from: user._id,
-              _to: auth._id
-            } INTO userToAuthentication
-          "
-`;
-
-exports[`sendSignInEmail internals createUserAndAuth queries using user and auth token 4`] = `
-Object {
-  "guid": Any<String>,
-  "isSignUp": true,
-  "token": Any<String>,
-}
-`;
-
-exports[`sendSignInEmail internals destroyAndCreateAuthForUser queries with old auth 1`] = `
-Object {
-  "guid": "asdf",
-  "isSignUp": false,
-  "token": Any<String>,
-}
-`;
-
-exports[`sendSignInEmail internals destroyAndCreateAuthForUser queries with old auth 2`] = `
-Object {
-  "_source": [Function],
-  "bindVars": Object {
-    "value0": 1234,
-    "value1": 5678,
-  },
-  "query": "
-          WITH userAuthentications, userToAuthentication
-
-          LET authEdges = (
-            FOR v, e
-              IN 1..1
-              INBOUND @value0
-              GRAPH 'userSignInAttempt'
-                REMOVE e IN userToAuthentication
-          )
-
-          REMOVE { \\"_key\\": @value1 } IN userAuthentications
-        ",
-}
-`;
-
-exports[`sendSignInEmail internals destroyAndCreateAuthForUser queries with old auth 3`] = `
-Object {
-  "value0": Object {
-    "createdOn": Any<Number>,
-    "token": Any<String>,
-    "ttl": 900000,
-  },
-  "value1": Any<Number>,
-}
-`;
-
-exports[`sendSignInEmail internals destroyAndCreateAuthForUser queries with old auth 4`] = `
-"
-                  // create new authen
-                  INSERT @value0 INTO userAuthentications
-
-                  // store new doc
-                  LET auth = NEW
-
-                  // create edge to user
-                  INSERT {
-                    _from: @value1,
-                    _to: auth._id
-                  } INTO userToAuthentication
-                "
-`;
-
-exports[`sendSignInEmail internals queryUserNAuth queries using email 1`] = `
-Object {
-  "_source": [Function],
-  "bindVars": Object {
-    "value0": "foo@dope.business",
-  },
-  "query": "
-        LET user = First(
-          FOR user IN users
-            FILTER user.normalizedEmail == @value0
-            LIMIT 1
-            RETURN user
-        )
-
-        LET auth = !IS_NULL(user) ? FIRST(
-          FOR auth
-            IN 1..1
-            OUTBOUND user._id
-            userToAuthentication
-              RETURN auth
-        ) : NULL
-
-        RETURN { user, auth }
-      ",
+- The WNDLR Team",
+  "to": "Foo",
 }
 `;

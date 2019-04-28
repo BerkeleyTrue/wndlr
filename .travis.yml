@@ -10,8 +10,10 @@ node_js:
   - '10'
 
 before_install:
+  - npm install -g prisma
   - if [[ `npm -v` != 6* ]]; then npm install -g npm@6; fi
   - npm install -g greenkeeper-lockfile
+  - cd ./src/dal && prisma generate && cd ../..
 
 install:
   - node travis-install.js
