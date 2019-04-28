@@ -4,18 +4,16 @@ notifications:
   webhooks: https://www.travisbuddy.com/
 
 language: node_js
-services:
-  docker
 
 node_js:
   - '8'
   - '10'
 
 before_install:
-  - docker-compose up -d
+  - npm install -g prisma
   - if [[ `npm -v` != 6* ]]; then npm install -g npm@6; fi
   - npm install -g greenkeeper-lockfile
-  - npm run prisma:deploy
+  - cd ./src/dal && prisma generate && cd ../..
 
 install:
   - node travis-install.js
