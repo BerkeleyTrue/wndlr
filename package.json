@@ -13,7 +13,7 @@
     "build:client": "BABEL_TARGET=client webpack --env.production=true",
     "build:server": "NODE_ENV=production BABEL_TARGET=node babel src/server --ignore src/server/common-to-server.js --out-dir dist/server",
     "build:server:client": "BABEL_TARGET=node webpack --config webpack.server.js --env production",
-    "prisma:deploy": "cd src/dal && prisma deploy",
+    "prisma:deploy": "cd src/dal && ../../node_modules/.bin/prisma deploy",
     "pretest": "npm run lint",
     "test": "jest ./src",
     "test:watch": "npm run test -- --watch",
