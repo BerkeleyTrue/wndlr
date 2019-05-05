@@ -2,7 +2,7 @@ import * as R from 'ramda';
 import createDebugger from 'debug';
 import dedent from 'dedent';
 import moment from 'moment';
-import { gql } from 'apollo-server-express';
+import { arg, objectType, mutationField } from 'nexus';
 import { of, merge } from 'rxjs';
 import { normalizeEmail } from 'validator';
 import * as OP from 'rxjs/operators';
@@ -24,17 +24,14 @@ Please wait at least ${timeTillAuthReset} minute${
 export const ttl = moment.duration(15, 'minutes').asMilliseconds();
 export const authResetTime = 5;
 
-export const gqlType = gql`
-  """
-  User Authentication Document:
-  Relates to a user who is attempting to sign in or sign up.
-  """
-  type AuthenToken {
-    token: String
-    ttl: Int
-    createdOn: Int
-  }
-`;
+const UserAuthen = objectType({
+  name: 'UserAuthen',
+  definition(t) {
+    t.string('token');
+    t.int('ttl');
+    t.int('craeatedAt');
+  },
+});
 
 const pluckCreatedAt = R.prop('createdAt');
 const createResetMoment = () => moment().subtract(authResetTime, 'm');
@@ -276,3 +273,14 @@ export const sendAuthenEmail = (
     obv => obv.toPromise(),
   )(email);
 };
+
+export const typeDefs = [
+  UserAuthen,
+  mutationField('sendAuthenEmail', {
+    type: 'Info',
+    args: {
+      email: arg({ type: 'Email' }),
+    },
+    resolve: sendAuthenEmail,
+  }),
+];
