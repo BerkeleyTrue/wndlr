@@ -1,13 +1,13 @@
 import R from 'ramda';
-import { gql } from 'apollo-server-express';
-import { GraphQLScalarType } from 'graphql';
+import { scalarType } from 'nexus';
 import { Kind } from 'graphql/language';
 import { GraphQLError } from 'graphql/error';
 import { isEmail, normalizeEmail } from 'validator';
 
-export const GraphQLEmail = new GraphQLScalarType({
+export const Email = scalarType({
   name: 'Email',
   description: 'Email scalar',
+  asNexusMethod: 'email',
   serialize(value) {
     if (typeof value !== 'string') {
       return null;
@@ -38,8 +38,9 @@ export const GraphQLEmail = new GraphQLScalarType({
   },
 });
 
-export const GraphQLNormalizedEmail = new GraphQLScalarType({
+export const NormalizedEmail = scalarType({
   name: 'NormalizedEmail',
+  asNexusMethod: 'normalizedEmail',
   description: 'Normalized Email scalar',
   serialize(value) {
     if (typeof value !== 'string') {
@@ -71,12 +72,7 @@ export const GraphQLNormalizedEmail = new GraphQLScalarType({
   },
 });
 
-export const typeDefs = gql`
-  scalar Email
-  scalar NormalizedEmail
-`;
-
-export const resolvers = {
-  Email: GraphQLEmail,
-  NormalizedEmail: GraphQLNormalizedEmail,
-};
+export const typeDefs = [
+  Email,
+  NormalizedEmail,
+];
