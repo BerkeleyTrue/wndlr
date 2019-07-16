@@ -123,7 +123,7 @@
     "gulp-sourcemaps": "^2.6.4",
     "husky": "^2.0.0",
     "jest": "^24.1.0",
-    "mini-css-extract-plugin": "^0.7.0",
+    "mini-css-extract-plugin": "^0.8.0",
     "postcss-automath": "^1.0.1",
     "postcss-button": "^0.3.10",
     "postcss-console": "^0.1.0",
