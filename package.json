@@ -138,7 +138,7 @@
     "prisma": "^1.31.1",
     "react-hot-loader": "^4.0.1",
     "require-watch": "^2.0.1",
-    "style-loader": "^0.21.0",
+    "style-loader": "^1.0.0",
     "terser-webpack-plugin": "^1.2.2",
     "validate-commit-msg": "^2.14.0",
     "webpack": "^4.5.0",
